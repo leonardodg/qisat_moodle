@@ -1,0 +1,35 @@
+# In case of a reverse proxy please change the following setting
+# It should have the url that the USER provides into her/his browser.
+
+MOODLE_URL=#LINK DE ACESSO - EXEMPLO=http://localhost:8082
+
+# Database configuration
+DB_ROOT_PASSWORD=#SENHA ROOT DO BANCO
+MOODLE_DB_USER=#NOME DO USER PARA ACESSO AO BANCO
+MOODLE_DB_PASSWORD=#SENHA DO USER PARA ACESSO AO BANCO
+MOODLE_DB_NAME=#NOME DA BASE DE DADOS
+
+# Default user
+MOODLE_ADMIN=admin
+MOODLE_ADMIN_PASSWORD=qisat.123
+MOODLE_ADMIN_EMAIL=teste@qisat.com.br
+
+# Indicate whethers runs Behind SSL Proxy (set values in true  by default are set as false)
+MOODLE_REVERSE_LB=false
+MOODLE_SSL=false
+
+#mail settings
+MOODLE_EMAIL_TYPE_QMAIL=false # Set true is qmail MTA a used
+MOODLE_EMAIL_HOST=#host where the email is being sent
+
+##### ------- PATH'S ------- #####
+PATH_MOODLE_WWW=# CAMINHO DO DIRETORIO WWW
+PATH_MOODLE_DATA=# CAMINHO DO DIRETORIO MOODLE DATA
+PATH_MYSQL_DATA=# CAMINHO DO DIRETORIO DO BANCO
+
+##### ----- PORTAS ------- #####
+WWW_PORT=#PORTA PARA ACESSO WWW
+MARIADB_PORT_NUMBER=#PORTA PARA ACESSO AO BANCO
+
+##### -------- HOST_NAME --------- #####
+MARIADB_HOST=moodle_db
