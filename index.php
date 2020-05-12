@@ -52,6 +52,13 @@ if ($CFG->forcelogin) {
     user_accesstime_log();
 }
 
+if(!has_capability('moodle/site:viewindexpage', context_system::instance())){
+    if($CFG->alternateindexurl){
+        $link = new moodle_url($CFG->alternateindexurl, array('section'=>'manageauths'));
+        redirect($link, null, 0);
+    }
+}
+
 $hassiteconfig = has_capability('moodle/site:config', context_system::instance());
 
 // If the site is currently under maintenance, then print a message.

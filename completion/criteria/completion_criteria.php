@@ -77,6 +77,12 @@ define('COMPLETION_CRITERIA_TYPE_ROLE',         7);
 define('COMPLETION_CRITERIA_TYPE_COURSE',       8);
 
 /**
+ * Course completion criteria type
+ * Criteria type constant, primarily for storing criteria type in the database.
+ */
+define('COMPLETION_CRITERIA_TYPE_PERCENTAGE',       9);
+
+/**
  * Criteria type constant to class name mapping
  */
 global $COMPLETION_CRITERIA_TYPES;
@@ -89,6 +95,7 @@ $COMPLETION_CRITERIA_TYPES = array(
     COMPLETION_CRITERIA_TYPE_GRADE      => 'grade',
     COMPLETION_CRITERIA_TYPE_ROLE       => 'role',
     COMPLETION_CRITERIA_TYPE_COURSE     => 'course',
+    COMPLETION_CRITERIA_TYPE_PERCENTAGE => 'percentage'
 );
 
 
@@ -112,7 +119,7 @@ abstract class completion_criteria extends data_object {
      * enrolperiod, timeend, gradepass, role
      * @var array
      */
-    public $required_fields = array('id', 'course', 'criteriatype', 'module', 'moduleinstance', 'courseinstance', 'enrolperiod', 'timeend', 'gradepass', 'role');
+    public $required_fields = array('id', 'course', 'criteriatype', 'module', 'moduleinstance', 'courseinstance', 'enrolperiod', 'timeend', 'gradepass', 'role', 'percentage');
 
     /* @var int Course id  */
     public $course;

@@ -42,9 +42,19 @@ if ($f) {  // Two ways to specify the module
 
 $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
 
-require_course_login($course, true, $cm);
+//require_course_login($course, true, $cm);
+require_login();
+$context = context_course::instance($cm->course);
+if(!is_enrolled($context))
+    require_login($course, true, $cm);
+
+
 $context = context_module::instance($cm->id);
 require_capability('mod/folder:view', $context);
+
+$PAGE->set_cm($cm, $course);
+$PAGE->set_pagelayout('incourse');
+
 if ($folder->display == FOLDER_DISPLAY_INLINE) {
     redirect(course_get_url($folder->course, $cm->sectionnum));
 }

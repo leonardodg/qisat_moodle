@@ -52,3 +52,6 @@ $string['displayinline'] = 'Inline on a course page';
 $string['noautocompletioninline'] = 'Automatic completion on viewing of activity can not be selected together with "Display inline" option';
 $string['showexpanded'] = 'Show subfolders expanded';
 $string['showexpanded_help'] = 'If set to \'yes\', subfolders are shown expanded by default; otherwise they are shown collapsed.';
+
+$string['directory'] = 'Diretório';
+$string['directory_help'] = 'Para que os arquivos possam ser baixados da biblioteca, é indispensavel que a biblioteca esteja no diretório raiz do curso e tenha como nome "Biblioteca"';

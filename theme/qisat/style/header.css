@@ -1,0 +1,118 @@
+/*.header-main {*/
+    /*float: left;*/
+    /*border-top: 3px solid #005285;*/
+    /*display: inline-block;*/
+    /*width: 100%;*/
+    /*background: #fff;*/
+    /*display: inline-block;*/
+    /*position: relative;*/
+    /*border-bottom: 1px solid #ccc;*/
+    /*position: fixed;*/
+    /*z-index: 200;*/
+    /*right: 0;*/
+    /*left: 0;*/
+    /*top: 0;*/
+    /*transition: transform 200ms linear;*/
+
+    /*box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.3), 0 2px 2px 0 rgba(0, 0, 0, 0.2) !important;*/
+/*}*/
+
+.header-main__ul li{
+    line-height: 27px;
+}
+
+.header-main__ul li a:hover{
+    text-decoration: none !important;
+}
+
+.usermenu {
+    height: 64px;
+}
+
+.usertext {
+    color: #008CBA !important;
+}
+
+.usermenu .login {
+    display: block;
+    padding-top: 10px;
+    font-size: 1rem;
+    color: #008CBA;
+}
+
+.usermenu .login a, .usermenu .login a:hover {
+    font-size: 1rem;
+    color: #28B67C;
+}
+
+.usermenu .moodle-actionmenu a {
+    font-size: 1rem !important;
+    color: #008CBA !important;
+}
+
+.menu-action-text {
+    font-size: 1rem !important;
+    color: #efefef !important;
+}
+
+.jsenabled .usermenu .moodle-actionmenu>.menu .filler {
+    display: block;
+    height: 0;
+    margin: 9px 1px;
+    overflow: hidden;
+    background-color: #004875;
+    border-bottom: 1px solid #004875;
+}
+
+.moodle-actionmenu[data-enhanced].show .menu {
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+    position: absolute;
+    z-index: 1000;
+    display: block;
+    text-align: left;
+    background-color: #0f5885;
+    border: 1px solid #004875;
+    /*-webkit-box-shadow: 5px 5px 20px 0 #666;*/
+    /*-moz-box-shadow: 5px 5px 20px 0 #666;*/
+    /*box-shadow: 5px 5px 20px 0 #666;*/
+
+    box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.3), 0 2px 2px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+.jsenabled .usermenu .moodle-actionmenu.show .menu:after {
+    /*border-bottom: 6px solid #0f5885;*/
+    position: absolute;
+    top: -10px;
+    right: 110px;
+    display: inline-block;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid #0f5885;
+    border-left: 10px solid transparent;
+    content: '';
+}
+
+.jsenabled .usermenu .moodle-actionmenu.show .menu:before {
+    display: none;
+}
+
+.jsenabled .usermenu .moodle-actionmenu.show .menu.align-tr-br {
+    margin-top: 0;
+}
+
+.jsenabled .moodle-actionmenu {
+    padding-top: 10px;
+}
+
+.jsenabled .usermenu .moodle-actionmenu.show {
+    background-color: #F0F0F0;
+    height: 65px;
+    padding-top: 10px;
+    border-top: 4px solid #28B67C;
+    margin-top: -4px;
+}
+
+.jsenabled .usermenu .moodle-actionmenu.show .menu a {
+    opacity: 0.8;
+}

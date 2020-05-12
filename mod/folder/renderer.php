@@ -67,9 +67,8 @@ class mod_folder_renderer extends plugin_renderer_base {
         // Do not append the edit button on the course page.
         if ($folder->display != FOLDER_DISPLAY_INLINE && has_capability('mod/folder:managefiles', $context)) {
             $output .= $this->output->container(
-                    $this->output->single_button(new moodle_url('/mod/folder/edit.php',
-                    array('id' => $cm->id)), get_string('edit')),
-                    'mdl-align folder-edit-button');
+                $this->output->single_button(new moodle_url('/blocks/repo_filemanager/index.php?wdir='.$folder->name.'&id='.$folder->course),
+                    get_string('edit'), 'get'), 'mdl-align folder-edit-button');
         }
         return $output;
     }
@@ -108,20 +107,20 @@ class mod_folder_renderer extends plugin_renderer_base {
             $result .= html_writer::tag('li', $filename. $this->htmllize_tree($tree, $subdir));
         }
         foreach ($dir['files'] as $file) {
-            $filename = $file->get_filename();
-            $url = moodle_url::make_pluginfile_url($file->get_contextid(), $file->get_component(),
-                    $file->get_filearea(), $file->get_itemid(), $file->get_filepath(), $filename, false);
+            $filename = $file['title'];
+            $url = moodle_url::make_file_url($CFG->wwwroot, '/repository/coursefilearea/file.php/'.$dir['course'].'/'.$file['source'], true);
+
             if (file_extension_in_typegroup($filename, 'web_image')) {
-                $image = $url->out(false, array('preview' => 'tinyicon', 'oid' => $file->get_timemodified()));
+                $image = $url->out(false, array('preview' => 'tinyicon', 'oid' => $file["date"]));
                 $image = html_writer::empty_tag('img', array('src' => $image));
             } else {
                 $image = $this->output->pix_icon(file_file_icon($file, 24), $filename, 'moodle');
             }
             $filename = html_writer::tag('span', $image, array('class' => 'fp-icon')).
-                    html_writer::tag('span', $filename, array('class' => 'fp-filename'));
+                html_writer::tag('span', $filename, array('class' => 'fp-filename'));
             $filename = html_writer::tag('span',
-                    html_writer::link($url->out(false, array('forcedownload' => 1)), $filename),
-                    array('class' => 'fp-filename-icon'));
+                html_writer::link($url->out(false, array('forcedownload' => 1)), $filename),
+                array('class' => 'fp-filename-icon'));
             $result .= html_writer::tag('li', $filename);
         }
         $result .= '</ul>';
@@ -137,11 +136,32 @@ class folder_tree implements renderable {
     public $dir;
 
     public function __construct($folder, $cm) {
-        $this->folder = $folder;
-        $this->cm     = $cm;
+        global $CFG;
+        require_once($CFG->dirroot . "/repository/coursefilearea/lib.php");
 
         $this->context = context_module::instance($cm->id);
-        $fs = get_file_storage();
-        $this->dir = $fs->get_area_tree($this->context->id, 'mod_folder', 'content', 0);
+        $this->folder = $folder;
+
+        $cfa = new repository_coursefilearea();
+        $this->dir = $this->get_listing($cfa, $folder->src);
+        $this->dir['course'] = $folder->course;
+    }
+
+    private function get_listing($cfa, $folder){
+        $path = $cfa->get_listing($folder);
+        $path['subdirs'] = array();
+        $path['files'] = array();
+        $path['course'] = $this->folder->course;
+        foreach($path['list'] as $dir){
+            if(isset($dir["size"])){
+                $path['files'][] = $dir;
+            } else {
+                $dirname = $dir['title'];
+                $dir = $this->get_listing($cfa, $dir['path']);
+                $dir['dirname'] = $dirname;
+                $path['subdirs'][] = $dir;
+            }
+        }
+        return $path;
     }
 }

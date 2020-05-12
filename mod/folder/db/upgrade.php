@@ -125,5 +125,21 @@ function xmldb_folder_upgrade($oldversion) {
     // Moodle v2.9.0 release upgrade line.
     // Put any upgrade step following this.
 
+    // Rename show_expanded to showexpanded (see MDL-38646).
+    if ($oldversion < 2017032200) {
+
+        // Define field showexpanded to be added to folder
+        $table = new xmldb_table('folder');
+        $field = new xmldb_field('src', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, '', 'showexpanded');
+
+        // Conditionally launch add field showexpanded
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // folder savepoint reached
+        upgrade_mod_savepoint(true, 2017032200, 'folder');
+    }
+
     return true;
 }

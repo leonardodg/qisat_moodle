@@ -622,6 +622,14 @@ if (\mod_forum\subscriptions::subscription_disabled($forum) && !$manageactivitie
     }
 }
 
+$timenow = false;
+if (!empty($post->id)) {
+	$forum_posts_time = $DB->get_record('forum_posts_time', array('id' => $post->id));
+	if ($forum_posts_time->mostradata) {
+		$timenow = true;
+	}
+}
+
 $mform_post->set_data(array(        'attachments'=>$draftitemid,
                                     'general'=>$heading,
                                     'subject'=>$post->subject,
@@ -632,6 +640,7 @@ $mform_post->set_data(array(        'attachments'=>$draftitemid,
                                     ),
                                     'discussionsubscribe' => $discussionsubscribe,
                                     'mailnow'=>!empty($post->mailnow),
+                                    'timenow' => $timenow,
                                     'userid'=>$post->userid,
                                     'parent'=>$post->parent,
                                     'discussion'=>$post->discussion,

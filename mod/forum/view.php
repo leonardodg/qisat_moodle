@@ -62,7 +62,7 @@
         }
         // move require_course_login here to use forced language for course
         // fix for MDL-6926
-        require_course_login($course, true, $cm);
+        //--require_course_login($course, true, $cm);
         $strforums = get_string("modulenameplural", "forum");
         $strforum = get_string("modulename", "forum");
     } else if ($f) {
@@ -79,18 +79,29 @@
         }
         // move require_course_login here to use forced language for course
         // fix for MDL-6926
-        require_course_login($course, true, $cm);
+        //--require_course_login($course, true, $cm);
         $strforums = get_string("modulenameplural", "forum");
         $strforum = get_string("modulename", "forum");
     } else {
         print_error('missingparameter');
     }
 
+    require_login();
+    $context = context_course::instance($cm->course);
+    if(!is_enrolled($context))
+        require_login($course, true, $cm);
+
+    $context = context_module::instance($cm->id);
+    require_capability('mod/folder:view', $context);
+
+    $PAGE->set_cm($cm, $course);
+    $PAGE->set_pagelayout('incourse');
+
     if (!$PAGE->button) {
         $PAGE->set_button(forum_search_form($course, $search));
     }
 
-    $context = context_module::instance($cm->id);
+    //$context = context_module::instance($cm->id);
     $PAGE->set_context($context);
 
     if (!empty($CFG->enablerssfeeds) && !empty($CFG->forum_enablerssfeeds) && $forum->rsstype && $forum->rssarticles) {

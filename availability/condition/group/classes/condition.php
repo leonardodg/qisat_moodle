@@ -71,7 +71,9 @@ class condition extends \core_availability\condition {
         $allow = true;
         if (!has_capability('moodle/site:accessallgroups', $context, $userid)) {
             // Get all groups the user belongs to.
-            $groups = $info->get_modinfo()->get_groups();
+            //$groups = $info->get_modinfo()->get_groups();
+            // Get all groups AltoQiLab the user belongs to.
+            $groups = $this->get_groups($info->get_course()->id, $userid);
             if ($this->groupid) {
                 $allow = in_array($this->groupid, $groups);
             } else {
@@ -88,6 +90,43 @@ class condition extends \core_availability\condition {
             }
         }
         return $allow;
+    }
+
+    private function get_groups($course, $userid){
+        global $DB;
+
+        $sql = "SELECT g.id, gg.groupingid
+              FROM {groups} g
+                   JOIN {groups_members} gm   ON gm.groupid = g.id
+              LEFT JOIN {groupings_groups} gg ON gg.groupid = g.id
+             WHERE gm.userid = ? AND g.courseid = ? AND g.mdl_fase_id IS NOT NULL";
+        $params = array($userid, $course);
+
+        $rs = $DB->get_recordset_sql($sql, $params);
+
+        if (!$rs->valid() || empty($rs)) {
+            $rs->close(); // Not going to iterate (but exit), close rs
+            return false;
+        }
+
+        $result    = array();
+        $allgroups = array();
+
+        foreach ($rs as $group) {
+            $allgroups[$group->id] = $group->id;
+            if (is_null($group->groupingid)) {
+                continue;
+            }
+            if (!array_key_exists($group->groupingid, $result)) {
+                $result[$group->groupingid] = array();
+            }
+            $result[$group->groupingid][$group->id] = $group->id;
+        }
+        $rs->close();
+
+        $result['0'] = array_keys($allgroups); // all groups
+
+        return $result;
     }
 
     public function get_description($full, $not, \core_availability\info $info) {

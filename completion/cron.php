@@ -26,6 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir.'/completionlib.php');
+require_once($CFG->dirroot.'/course/format/topicstime/controle_acesso/controleAcesso.php');
 
 /**
  * Update user's course completion statuses
@@ -39,7 +40,53 @@ function completion_cron() {
 
     completion_cron_criteria();
 
-    completion_cron_completions();
+    completion_cron_completions_ativos();
+
+    //completion_cron_completions();
+}
+
+function completion_cron_completions_ativos(){
+    global $DB;
+
+    mtrace('Calculando dados da conclusão de curso');
+
+    $timeend = time() - 172800;
+
+    $sql = 'SELECT DISTINCT e.courseid as courseid, ue.userid as userid
+                FROM {user_enrolments} ue
+                INNER JOIN {enrol} e ON e.id = ue.enrolid
+                LEFT JOIN {course_completions} cc ON cc.userid = ue.userid AND cc.course = e.courseid
+                WHERE ue.timeend > :timeend AND cc.timecompleted IS NULL
+	            ORDER BY courseid, userid';
+
+    $rs = $DB->get_recordset_sql($sql, array('timeend' => $timeend));
+
+    if (!$rs->valid()) {
+        $rs->close();
+        mtrace('Sem retornos validos. Finalizando o calculo de dados da conclusão de curso');
+        return;
+    }
+
+    $controleAcesso = new ControleAcesso();
+
+    foreach ($rs as $record){
+        mtrace('Curso: ' . $record->courseid . ' Usuario: ' . $record->userid);
+        $controleAcesso->inserirConclusaoCurso($record->courseid, $record->userid);
+    }
+
+    // Mark all users as aggregated
+    /*$sql = "
+        UPDATE
+            {course_completions}
+        SET
+            reaggregate = 0
+        WHERE
+            reaggregate < :timestarted
+        AND reaggregate > 0
+    ";
+    $DB->execute($sql, array('timestarted' => $timestarted));*/
+
+    mtrace('Finalizando o calculo de dados da conclusão de curso');
 }
 
 /**
@@ -235,139 +282,156 @@ function completion_cron_completions() {
     // Save time started
     $timestarted = time();
 
-    // Grab all criteria and their associated criteria completions
-    $sql = '
-        SELECT DISTINCT
-            c.id AS course,
-            cr.id AS criteriaid,
-            crc.userid AS userid,
-            cr.criteriatype AS criteriatype,
-            cc.timecompleted AS timecompleted
-        FROM
-            {course_completion_criteria} cr
-        INNER JOIN
-            {course} c
-         ON cr.course = c.id
-        INNER JOIN
-            {course_completions} crc
-         ON crc.course = c.id
-        LEFT JOIN
-            {course_completion_crit_compl} cc
-         ON cc.criteriaid = cr.id
-        AND crc.userid = cc.userid
-        WHERE
-            c.enablecompletion = 1
-        AND crc.timecompleted IS NULL
-        AND crc.reaggregate > 0
-        AND crc.reaggregate < :timestarted
-        ORDER BY
-            course,
-            userid
-    ';
+    for ($i=0; $i < 36 ; $i++) { 
+        $limit  = 1000;
+        $offset = 1000 * $i;
+        //echo "Executando $limit, posição $offset \n";
 
-    $rs = $DB->get_recordset_sql($sql, array('timestarted' => $timestarted));
+        // Grab all criteria and their associated criteria completions
+        $sql = '
+            SELECT DISTINCT
+                c.id AS course,
+                cr.id AS criteriaid,
+                crc.userid AS userid,
+                cr.criteriatype AS criteriatype,
+                cc.timecompleted AS timecompleted
+            FROM
+                {course_completion_criteria} cr
+            INNER JOIN
+                {course} c
+             ON cr.course = c.id
+            INNER JOIN
+                {course_completions} crc
+             ON crc.course = c.id
+            INNER JOIN(
+                select u1.id from {user} u1
+                limit '.$offset.','.$limit.'
+            ) u ON u.id = crc.userid
+            LEFT JOIN
+                {course_completion_crit_compl} cc
+             ON cc.criteriaid = cr.id
+            AND crc.userid = cc.userid
+            WHERE
+                c.enablecompletion = 1
+            AND crc.timecompleted IS NULL
+            AND crc.reaggregate > 0
+            AND crc.reaggregate < :timestarted
+            ORDER BY
+                course,
+                userid
+        ';
 
-    // Check if result is empty
-    if (!$rs->valid()) {
-        $rs->close(); // Not going to iterate (but exit), close rs
-        return;
-    }
+        $rs = $DB->get_recordset_sql($sql, array('timestarted' => $timestarted));
+        //var_dump($rs);
+       // echo "Dados Selecionados total de registros: ".count($rs)."\n";
+        //$cont = 0;
 
-    $current_user = null;
-    $current_course = null;
-    $completions = array();
+        // Check if result is empty
+        if (!$rs->valid()) {
+            $rs->close(); // Not going to iterate (but exit), close rs
+            return;
+        }
 
-    while (1) {
+        $current_user = null;
+        $current_course = null;
+        $completions = array();
 
-        // Grab records for current user/course
-        foreach ($rs as $record) {
-            // If we are still grabbing the same users completions
-            if ($record->userid === $current_user && $record->course === $current_course) {
-                $completions[$record->criteriaid] = $record;
-            } else {
+        while (1) {
+            //$cont++;
+            //echo "Executando: $cont\n";
+
+            // Grab records for current user/course
+            foreach ($rs as $record) {
+                // If we are still grabbing the same users completions
+                if ($record->userid === $current_user && $record->course === $current_course) {
+                    $completions[$record->criteriaid] = $record;
+                } else {
+                    break;
+                }
+            }
+
+            // Aggregate
+            if (!empty($completions)) {
+
+                if (debugging()) {
+                    mtrace('Aggregating completions for user '.$current_user.' in course '.$current_course);
+                }
+
+                // Get course info object
+                $info = new completion_info((object)array('id' => $current_course));
+
+                // Setup aggregation
+                $overall = $info->get_aggregation_method();
+                $activity = $info->get_aggregation_method(COMPLETION_CRITERIA_TYPE_ACTIVITY);
+                $prerequisite = $info->get_aggregation_method(COMPLETION_CRITERIA_TYPE_COURSE);
+                $role = $info->get_aggregation_method(COMPLETION_CRITERIA_TYPE_ROLE);
+
+                $overall_status = null;
+                $activity_status = null;
+                $prerequisite_status = null;
+                $role_status = null;
+
+                // Get latest timecompleted
+                $timecompleted = null;
+
+                // Check each of the criteria
+                foreach ($completions as $params) {
+                    $timecompleted = max($timecompleted, $params->timecompleted);
+
+                    $completion = new completion_criteria_completion((array)$params, false);
+
+                    // Handle aggregation special cases
+                    if ($params->criteriatype == COMPLETION_CRITERIA_TYPE_ACTIVITY) {
+                        completion_cron_aggregate($activity, $completion->is_complete(), $activity_status);
+                    } else if ($params->criteriatype == COMPLETION_CRITERIA_TYPE_COURSE) {
+                        completion_cron_aggregate($prerequisite, $completion->is_complete(), $prerequisite_status);
+                    } else if ($params->criteriatype == COMPLETION_CRITERIA_TYPE_ROLE) {
+                        completion_cron_aggregate($role, $completion->is_complete(), $role_status);
+                    } else {
+                        completion_cron_aggregate($overall, $completion->is_complete(), $overall_status);
+                    }
+                }
+
+                // Include role criteria aggregation in overall aggregation
+                if ($role_status !== null) {
+                    completion_cron_aggregate($overall, $role_status, $overall_status);
+                }
+
+                // Include activity criteria aggregation in overall aggregation
+                if ($activity_status !== null) {
+                    completion_cron_aggregate($overall, $activity_status, $overall_status);
+                }
+
+                // Include prerequisite criteria aggregation in overall aggregation
+                if ($prerequisite_status !== null) {
+                    completion_cron_aggregate($overall, $prerequisite_status, $overall_status);
+                }
+
+                var_dump($overall_status);
+
+                // If aggregation status is true, mark course complete for user
+                if ($overall_status) {
+                    if (debugging()) {
+                        mtrace('Marking complete');
+                    }
+
+                    $ccompletion = new completion_completion(array('course' => $params->course, 'userid' => $params->userid));
+                    $ccompletion->mark_complete($timecompleted);
+                }
+            }
+
+            // If this is the end of the recordset, break the loop
+            if (!$rs->valid()) {
+                $rs->close();
                 break;
             }
+
+            // New/next user, update user details, reset completions
+            $current_user = $record->userid;
+            $current_course = $record->course;
+            $completions = array();
+            $completions[$record->criteriaid] = $record;
         }
-
-        // Aggregate
-        if (!empty($completions)) {
-
-            if (debugging()) {
-                mtrace('Aggregating completions for user '.$current_user.' in course '.$current_course);
-            }
-
-            // Get course info object
-            $info = new completion_info((object)array('id' => $current_course));
-
-            // Setup aggregation
-            $overall = $info->get_aggregation_method();
-            $activity = $info->get_aggregation_method(COMPLETION_CRITERIA_TYPE_ACTIVITY);
-            $prerequisite = $info->get_aggregation_method(COMPLETION_CRITERIA_TYPE_COURSE);
-            $role = $info->get_aggregation_method(COMPLETION_CRITERIA_TYPE_ROLE);
-
-            $overall_status = null;
-            $activity_status = null;
-            $prerequisite_status = null;
-            $role_status = null;
-
-            // Get latest timecompleted
-            $timecompleted = null;
-
-            // Check each of the criteria
-            foreach ($completions as $params) {
-                $timecompleted = max($timecompleted, $params->timecompleted);
-
-                $completion = new completion_criteria_completion((array)$params, false);
-
-                // Handle aggregation special cases
-                if ($params->criteriatype == COMPLETION_CRITERIA_TYPE_ACTIVITY) {
-                    completion_cron_aggregate($activity, $completion->is_complete(), $activity_status);
-                } else if ($params->criteriatype == COMPLETION_CRITERIA_TYPE_COURSE) {
-                    completion_cron_aggregate($prerequisite, $completion->is_complete(), $prerequisite_status);
-                } else if ($params->criteriatype == COMPLETION_CRITERIA_TYPE_ROLE) {
-                    completion_cron_aggregate($role, $completion->is_complete(), $role_status);
-                } else {
-                    completion_cron_aggregate($overall, $completion->is_complete(), $overall_status);
-                }
-            }
-
-            // Include role criteria aggregation in overall aggregation
-            if ($role_status !== null) {
-                completion_cron_aggregate($overall, $role_status, $overall_status);
-            }
-
-            // Include activity criteria aggregation in overall aggregation
-            if ($activity_status !== null) {
-                completion_cron_aggregate($overall, $activity_status, $overall_status);
-            }
-
-            // Include prerequisite criteria aggregation in overall aggregation
-            if ($prerequisite_status !== null) {
-                completion_cron_aggregate($overall, $prerequisite_status, $overall_status);
-            }
-
-            // If aggregation status is true, mark course complete for user
-            if ($overall_status) {
-                if (debugging()) {
-                    mtrace('Marking complete');
-                }
-
-                $ccompletion = new completion_completion(array('course' => $params->course, 'userid' => $params->userid));
-                $ccompletion->mark_complete($timecompleted);
-            }
-        }
-
-        // If this is the end of the recordset, break the loop
-        if (!$rs->valid()) {
-            $rs->close();
-            break;
-        }
-
-        // New/next user, update user details, reset completions
-        $current_user = $record->userid;
-        $current_course = $record->course;
-        $completions = array();
-        $completions[$record->criteriaid] = $record;
     }
 
     // Mark all users as aggregated

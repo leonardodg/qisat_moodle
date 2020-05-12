@@ -18,7 +18,7 @@
  * Strings for component 'enrol_self', language 'en'.
  *
  * @package    enrol_self
- * @copyright  2010 Petr Skoda  {@link http://skodak.org}
+ * @copyright  2010 Petr Skoda, 2015 Inty Castillo {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -113,3 +113,6 @@ $string['welcometocoursetext'] = 'Welcome to {$a->coursename}!
 If you have not done so already, you should edit your profile page so that we can learn more about you:
 
   {$a->profileurl}';
+
+$string['emailunenroltitulo'] = 'unenroll';
+$string['emailunenrolmensagem'] = 'The student {$a->name} unsubscribed the course {$a->fullname}, in day {$a->data}';

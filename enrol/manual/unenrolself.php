@@ -23,9 +23,12 @@
  */
 
 require('../../config.php');
+require_once($CFG->dirroot.'/enrol/manual/locallib.php');
 
 $enrolid = required_param('enrolid', PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
+$redirect = optional_param('redirect', null, PARAM_TEXT);
+$chave = optional_param('chave', null, PARAM_TEXT);
 
 $instance = $DB->get_record('enrol', array('id'=>$enrolid, 'enrol'=>'manual'), '*', MUST_EXIST);
 $course = $DB->get_record('course', array('id'=>$instance->courseid), '*', MUST_EXIST);
@@ -48,14 +51,26 @@ $PAGE->set_url('/enrol/manual/unenrolself.php', array('enrolid'=>$instance->id))
 $PAGE->set_title($plugin->get_instance_name($instance));
 
 if ($confirm and confirm_sesskey()) {
+	global $USER;
     $plugin->unenrol_user($instance, $USER->id);
+  
+    enviarEmail($USER->firstname.' '.$USER->lastname, $course->fullname);
+    add_log($course->id, 'course', 'unenrol', 'view.php?id='.$course->id, $course->id, 0, $USER->id);
 
-    redirect(new moodle_url('/index.php'));
+    if(isset($redirect)){
+    	redirect(new moodle_url($redirect, array('chave'=>$chave)));
+    } else {
+    	redirect(new moodle_url('/index.php'));
+	}
 }
 
 echo $OUTPUT->header();
-$yesurl = new moodle_url($PAGE->url, array('confirm'=>1, 'sesskey'=>sesskey()));
-$nourl = new moodle_url('/course/view.php', array('id'=>$course->id));
+$yesurl = new moodle_url($PAGE->url, array('confirm'=>1, 'sesskey'=>sesskey(), 'redirect'=>$redirect, 'chave'=>$chave));
+if(isset($redirect)){
+	$nourl = new moodle_url($redirect, array('chave'=>$chave));
+} else {
+	$nourl = new moodle_url('/course/view.php', array('id'=>$course->id));
+}
 $message = get_string('unenrolselfconfirm', 'enrol_manual', format_string($course->fullname));
 echo $OUTPUT->confirm($message, $yesurl, $nourl);
 echo $OUTPUT->footer();

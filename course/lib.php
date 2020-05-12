@@ -24,6 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+require_once('lib_qisat.php');
+
 require_once($CFG->libdir.'/completionlib.php');
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->dirroot.'/course/format/lib.php');
@@ -2631,6 +2633,17 @@ function create_course($data, $editoroptions = NULL) {
                          'fullname' => $course->fullname)
     ));
     $event->trigger();
+
+    /**
+     * Customização da criação dos cursos
+     */
+    $cont = 1;
+    do{
+        course_create_sections_if_missing($course, $cont++);
+    }while($cont <= $course->numsections);
+    add_min_section_course($course);
+    add_max_section_course($course);
+    blocks_add_default_course_blocks_qisat($course);
 
     return $course;
 }

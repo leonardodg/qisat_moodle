@@ -25,7 +25,7 @@
  */
 
 // Disable moodle specific debug messages and any errors in output.
-define('NO_DEBUG_DISPLAY', true);
+define('NO_DEBUG_DISPLAY', false);
 
 require_once('config.php');
 require_once('lib/filelib.php');

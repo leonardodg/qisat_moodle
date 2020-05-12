@@ -156,7 +156,7 @@ class completion_criteria_duration extends completion_criteria {
      * @return string
      */
     public function get_title() {
-        return get_string('enrolmentduration', 'completion');
+        return get_string('minimoDiasInscritoEmitirCertificado', 'block_completionstatus');
     }
 
     /**
@@ -185,19 +185,28 @@ class completion_criteria_duration extends completion_criteria {
      */
     public function get_status($completion) {
         $timeenrolled = $this->get_timeenrolled($completion);
-        $timeleft = $timeenrolled + $this->enrolperiod - time();
+        $timeleft = time() - $timeenrolled;
         $enrolperiod = ceil($this->enrolperiod / (60 * 60 * 24));
 
-        $daysleft = ceil($timeleft / (60 * 60 * 24));
+        $daysleft = floor($timeleft / (60 * 60 * 24));
+        $enrolperiodtotal = ceil($this->enrolperiod / (60 * 60 * 24));
+        $daysleft = $daysleft > 0 ? $daysleft : 0;
 
-        return get_string('daysoftotal', 'completion', array(
-                'days' => $daysleft > 0 ? $daysleft : 0, 'total' => $enrolperiod));
+        return get_string('daysoftotal', 'completion', 
+                    array(
+                        'days' => $daysleft > $enrolperiodtotal ? $enrolperiodtotal : $daysleft, 'total' => $enrolperiod
+                    )
+                );
     }
 
     /**
      * Find user's who have completed this criteria
      */
     public function cron() {
+        /**
+         *  O CRON N�O RODA POIS EXISTEM MUITOS REGISTROS NA BASE. ESTA ATUALIZA��O � FEITA NO ACESSO DO USU�RIO.
+         */
+
         global $DB;
 
         /*
@@ -208,58 +217,75 @@ class completion_criteria_duration extends completion_criteria {
          * one of the enrolments has passed the set
          * duration.
          */
-        $sql = '
-            SELECT
-                c.id AS course,
-                cr.id AS criteriaid,
-                u.id AS userid,
-                ue.timestart AS otimestart,
-                (ue.timestart + cr.enrolperiod) AS ctimestart,
-                ue.timecreated AS otimeenrolled,
-                (ue.timecreated + cr.enrolperiod) AS ctimeenrolled
-            FROM
-                {user} u
-            INNER JOIN
-                {user_enrolments} ue
-             ON ue.userid = u.id
-            INNER JOIN
-                {enrol} e
-             ON e.id = ue.enrolid
-            INNER JOIN
-                {course} c
-             ON c.id = e.courseid
-            INNER JOIN
-                {course_completion_criteria} cr
-             ON c.id = cr.course
-            LEFT JOIN
-                {course_completion_crit_compl} cc
-             ON cc.criteriaid = cr.id
-            AND cc.userid = u.id
-            WHERE
-                cr.criteriatype = '.COMPLETION_CRITERIA_TYPE_DURATION.'
-            AND c.enablecompletion = 1
-            AND cc.id IS NULL
-            AND
-            (
-                ue.timestart > 0 AND ue.timestart + cr.enrolperiod < ?
-             OR ue.timecreated > 0 AND ue.timecreated + cr.enrolperiod < ?
-            )
-        ';
+        $sql = 'SELECT ccc.course
+                    FROM mdl_course_completion_criteria ccc
+                    WHERE ccc.criteriatype = '.COMPLETION_CRITERIA_TYPE_DURATION.'
+                    GROUP BY ccc.course
+                    ORDER BY ccc.course DESC';
 
-        // Loop through completions, and mark as complete
-        $now = time();
-        $rs = $DB->get_recordset_sql($sql, array($now, $now));
-        foreach ($rs as $record) {
-            $completion = new completion_criteria_completion((array) $record, DATA_OBJECT_FETCH_BY_KEY);
+        $listCourse = $DB->get_records_sql($sql);
 
-            // Use time start if not 0, otherwise use timeenrolled
-            if ($record->otimestart) {
-                $completion->mark_complete($record->ctimestart);
-            } else {
-                $completion->mark_complete($record->ctimeenrolled);
+        echo "Executando CRON duration \n";
+
+        foreach($listCourse as $course) {
+            echo "Executando curso $course->course \n";
+
+            $sql = '
+                SELECT
+                    c.id AS course,
+                    cr.id AS criteriaid,
+                    u.id AS userid,
+                    ue.timestart AS otimestart,
+                    (ue.timestart + cr.enrolperiod) AS ctimestart,
+                    ue.timecreated AS otimeenrolled,
+                    (ue.timecreated + cr.enrolperiod) AS ctimeenrolled
+                FROM
+                    (
+                        select u1.id from {user} u1
+                    ) u
+                INNER JOIN
+                    {user_enrolments} ue
+                 ON ue.userid = u.id
+                INNER JOIN
+                    {enrol} e
+                 ON e.id = ue.enrolid
+                INNER JOIN
+                    {course} c
+                 ON c.id = e.courseid
+                INNER JOIN
+                    {course_completion_criteria} cr
+                 ON c.id = cr.course
+                LEFT JOIN
+                    {course_completion_crit_compl} cc
+                 ON cc.criteriaid = cr.id
+                AND cc.userid = u.id
+                WHERE
+                    cr.criteriatype = '.COMPLETION_CRITERIA_TYPE_DURATION.'
+                AND c.enablecompletion = 1
+                AND cc.id IS NULL
+                AND
+                (
+                    ue.timestart > 0 AND ue.timestart + cr.enrolperiod < ?
+                 OR ue.timecreated > 0 AND ue.timecreated + cr.enrolperiod < ?
+                )
+                AND c.id = '.$course->course.'
+            ';
+
+            // Loop through completions, and mark as complete
+            $now = time();
+            $rs = $DB->get_recordset_sql($sql, array($now, $now));
+            foreach ($rs as $record) {
+                $completion = new completion_criteria_completion((array) $record, DATA_OBJECT_FETCH_BY_KEY);
+
+                // Use time start if not 0, otherwise use timeenrolled
+                if ($record->otimestart) {
+                    $completion->mark_complete($record->ctimestart);
+                } else {
+                    $completion->mark_complete($record->ctimeenrolled);
+                }
             }
+            $rs->close();
         }
-        $rs->close();
     }
 
     /**

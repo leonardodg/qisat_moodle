@@ -36,6 +36,7 @@ require_once($CFG->dirroot.'/completion/criteria/completion_criteria_duration.ph
 require_once($CFG->dirroot.'/completion/criteria/completion_criteria_grade.php');
 require_once($CFG->dirroot.'/completion/criteria/completion_criteria_role.php');
 require_once($CFG->dirroot.'/completion/criteria/completion_criteria_course.php');
+require_once($CFG->dirroot.'/completion/criteria/completion_criteria_percentage.php');
 require_once $CFG->libdir.'/gradelib.php';
 require_once($CFG->dirroot.'/course/completion_form.php');
 

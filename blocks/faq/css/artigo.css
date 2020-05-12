@@ -1,0 +1,43 @@
+h1 {
+	background-color: transparent !important;
+	color: #555555 !important;
+	font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+	font-size: 22px !important;
+	font-weight: bold !important;
+	margin-bottom: 0 !important;
+	display: inline !important;
+}
+
+.linha {
+	background-color: #cccccc;
+	height: 1px;
+}
+
+.texto {
+	font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+	font-size: 13px;
+	padding-top: 8px;
+	text-align: justify;
+	width: 100%;
+}
+
+b {
+	font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+	font-size: 18px !important;
+	margin-left: 30px !important;
+}
+
+img {
+	margin-bottom: -3px;
+	margin-top: -4px;
+}
+
+.avaliacao{
+	margin-top: -2px; 
+	margin-left: 121px;
+}
+
+.basic2{
+	margin-top: 3px; 
+	margin-left: 30px;
+}

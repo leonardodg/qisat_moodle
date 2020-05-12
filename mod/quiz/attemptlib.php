@@ -226,8 +226,11 @@ class quiz {
      * rather than attempting it.
      */
     public function is_preview_user() {
+        global $USER;
         if (is_null($this->ispreviewuser)) {
-            $this->ispreviewuser = has_capability('mod/quiz:preview', $this->context);
+            //$this->ispreviewuser = has_capability('mod/quiz:preview', $this->context);
+            $context = get_context_instance(CONTEXT_COURSE, $this->course->id, MUST_EXIST);
+            $this->ispreviewuser = !is_enrolled($context, $USER->id, '', true);
         }
         return $this->ispreviewuser;
     }

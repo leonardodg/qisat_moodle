@@ -125,6 +125,14 @@ class course_edit_form extends moodleform {
         $mform->addHelpButton('startdate', 'startdate');
         $mform->setDefault('startdate', time() + 3600 * 24);
 
+        $arrayHoras = array(0 => get_string('unlimited'));
+        for ($i=1; $i <= 60; $i++) {
+            $arrayHoras[$i] = $i;
+        }
+
+        $mform->addElement('select', 'timeaccesssection', get_string('timeAccessSection'), $arrayHoras);
+        $mform->addElement('text','coursehours', get_string('coursehours'));
+
         $mform->addElement('text','idnumber', get_string('idnumbercourse'),'maxlength="100"  size="10"');
         $mform->addHelpButton('idnumber', 'idnumbercourse');
         $mform->setType('idnumber', PARAM_RAW);

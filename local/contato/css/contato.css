@@ -1,0 +1,10 @@
+.box_contato{
+	position:relative !important;
+	margin-right:-20px !important;
+	float: left;
+	margin-left: 8px;
+}
+
+.div_campos{
+	float:left;
+}

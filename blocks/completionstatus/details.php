@@ -32,6 +32,7 @@ $userid = optional_param('user', 0, PARAM_INT);
 
 // Load course.
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
+require_course_login($course);
 
 // Load user.
 if ($userid) {
@@ -74,16 +75,28 @@ $PAGE->set_context(context_course::instance($course->id));
 $page = get_string('completionprogressdetails', 'block_completionstatus');
 $title = format_string($course->fullname) . ': ' . $page;
 
-$PAGE->navbar->add($page);
-$PAGE->set_pagelayout('report');
+$context = context_system::instance();
+$PAGE->set_context($context);
 $PAGE->set_url('/blocks/completionstatus/details.php', array('course' => $course->id, 'user' => $user->id));
 $PAGE->set_title(get_string('course') . ': ' . $course->fullname);
+$PAGE->navigation->add($page);
+
 $PAGE->set_heading($title);
+$category = $DB->get_record('course_categories', array('id' => $course->category), '*', MUST_EXIST);
+
+$PAGE->navbar->ignore_active();
+$PAGE->navbar->add($category->name, new moodle_url('/course/index.php', array('category' => $category->id)));
+$PAGE->navbar->add($course->fullname, new moodle_url('/course/view.php', array('id' => $course->id)));
+$PAGE->navbar->add($page);
+
+$PAGE->set_pagelayout('incourse');
+
 echo $OUTPUT->header();
 
+echo $OUTPUT->heading($page);
 
 // Display completion status.
-echo html_writer::start_tag('table', array('class' => 'generalbox boxaligncenter'));
+echo html_writer::start_tag('table', array('class' => 'generaltable generalbox boxaligncenter'));
 echo html_writer::start_tag('tbody');
 
 // If not display logged in user, show user name.
@@ -159,7 +172,7 @@ if (empty($completions)) {
 
     // Generate markup for criteria statuses.
     echo html_writer::start_tag('table',
-            array('class' => 'generalbox logtable boxaligncenter', 'id' => 'criteriastatus', 'width' => '100%'));
+            array('class' => 'generaltable generalbox logtable boxaligncenter', 'id' => 'criteriastatus', 'width' => '100%'));
     echo html_writer::start_tag('tbody');
     echo html_writer::start_tag('tr', array('class' => 'ccheader'));
     echo html_writer::tag('th', get_string('criteriagroup', 'block_completionstatus'), array('class' => 'c0 header', 'scope' => 'col'));
@@ -168,6 +181,7 @@ if (empty($completions)) {
     echo html_writer::tag('th', get_string('status'), array('class' => 'c3 header', 'scope' => 'col'));
     echo html_writer::tag('th', get_string('complete'), array('class' => 'c4 header', 'scope' => 'col'));
     echo html_writer::tag('th', get_string('completiondate', 'report_completion'), array('class' => 'c5 header', 'scope' => 'col'));
+    echo html_writer::tag('th', get_string('accesstime', 'block_completionstatus'), array('class' => 'c5 header', 'scope' => 'col'));
     echo html_writer::end_tag('tr');
 
     // Save row data.
@@ -184,6 +198,16 @@ if (empty($completions)) {
         $row['complete'] = $completion->is_complete();
         $row['timecompleted'] = $completion->timecompleted;
         $row['details'] = $criteria->get_details($completion);
+        $row['accesstime'] = getTimeAccess($criteria->moduleinstance, $completion->userid);
+        
+        if($tempoAcesso = getTimeAccess($criteria->moduleinstance, $completion->userid))
+            $row['accesstime'] = get_string('totalofaccess', 'block_completionstatus', [
+                                    'utilizado' => $tempoAcesso->tempo_utilizado,
+                                    'total' => $tempoAcesso->tempo_total
+                                ]);
+        else
+            $row['accesstime'] = '';
+        
         $rows[] = $row;
     }
 
@@ -248,6 +272,12 @@ if (empty($completions)) {
             echo '-';
         }
         echo html_writer::end_tag('td');
+
+        // Tempo de acesso
+        echo html_writer::start_tag('td', array('class' => 'cell c5'));
+        echo $row['accesstime'];
+        echo html_writer::end_tag('td');
+
         echo html_writer::end_tag('tr');
         // For row striping.
         $oddeven = $oddeven ? 0 : 1;
@@ -261,3 +291,30 @@ echo html_writer::start_tag('div', array('class' => 'buttons'));
 echo $OUTPUT->single_button($courseurl, get_string('returntocourse', 'block_completionstatus'), 'get');
 echo html_writer::end_tag('div');
 echo $OUTPUT->footer();
+function getTimeAccess($idModule, $idUsuario){
+    global $DB;
+
+    $sql = 'SELECT csa.tempo_total, csa.tempo_utilizado, c.timeaccesssection
+            FROM mdl_course_section_access csa
+            INNER JOIN mdl_course_modules cm ON cm.section = csa.course_section_id
+            INNER JOIN mdl_course c ON c.id = cm.course
+            WHERE csa.user_id = ? AND cm.id = ?';
+
+    if($result = $DB->get_record_sql($sql, [$idUsuario, $idModule])){
+
+        $dataAtual = new DateTime();
+        $tempoTotal = new DateTime();
+        $tempoUtilizado = new DateTime();
+
+        $tempoTotal->setTimestamp($dataAtual->getTimestamp() + $result->tempo_total);
+        $tempoUtilizado->setTimestamp($dataAtual->getTimestamp() + $result->tempo_utilizado);
+
+        $tempoTotal = $dataAtual->diff($tempoTotal);
+        $tempoTotal = $tempoTotal->format('%H:%I:%S');
+
+        $tempoUtilizado = $dataAtual->diff($tempoUtilizado);
+        $tempoUtilizado = $tempoUtilizado->format('%H:%I:%S');
+
+        return (object) ['tempo_total' => $tempoTotal, 'tempo_utilizado' => $tempoUtilizado];
+    }
+}

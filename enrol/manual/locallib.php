@@ -55,8 +55,8 @@ class enrol_manual_potential_participant extends user_selector_base {
 
         $sql = " FROM {user} u
             LEFT JOIN {user_enrolments} ue ON (ue.userid = u.id AND ue.enrolid = :enrolid)
-                WHERE $wherecondition
-                      AND ue.id IS NULL";
+                WHERE $wherecondition";
+                      //AND ue.id IS NULL";
 
         list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext);
         $order = ' ORDER BY ' . $sort;
@@ -494,4 +494,112 @@ function enrol_manual_get_potential_cohorts($context, $enrolid, $search = '', $p
         $cnt++;
     }
     return array('totalcohorts' => $totalcohorts, 'cohorts' => $cohorts);
+}
+
+/**
+ * Envio de email informando que o usu\E1rio teve a inscri\E7\E3o removida
+ */
+function enviarEmail($name, $fullname){
+  global $CFG;
+
+  $admin = get_admin();
+
+  $fromsite = new stdClass;
+  $fromsite->firstname = get_site()->fullname;
+  $fromsite->lastname = '';
+  $fromsite->lastnamephonetic = '';
+  $fromsite->firstnamephonetic = '';
+  $fromsite->middlename = '';
+  $fromsite->alternatename = '';
+  $fromsite->name = $fromsite->firstname;
+  $fromsite->email = $CFG->noreplyaddress;
+  $fromsite->maildisplay = true;
+  $fromsite->mailformat  = 1;
+
+  $mensagem = new stdClass;
+  $mensagem->name = $name;
+  $mensagem->fullname = $fullname;
+  $mensagem->data = date('d \d\e F \d\e Y');
+
+  $subject = get_string('emailunenroltitulo', 'enrol_manual');
+  $messagehtml = get_string('emailunenrolmensagem', 'enrol_manual', $mensagem);
+
+  $messagetext =  str_replace('<br />', "\n", $messagehtml);
+  $messagetext =  strip_tags($messagetext);
+
+  email_to_user($admin, $fromsite, $subject, $messagetext, $messagehtml);
+}
+
+/**
+ * Log de remo\E7\E3o de uma inscri\E7\E3o do usu\E1rio
+ */
+function add_log($courseid, $module, $action, $url='', $info='', $cm=0, $user=0) {
+  global $CFG, $USER, $DB;
+
+  if ($cm === '' || is_null($cm)) { 
+    $cm = 0;
+  }
+
+  if ($user) {
+    $userid = $user;
+  } else {
+    if (!empty($USER->realuser))  
+    if($action=='loginas' || $action=='logoutas')
+      $userid = $USER->realuser;
+    else
+      return;
+    else
+      $userid = empty($USER->id) ? '0' : $USER->id;
+  }
+
+  $REMOTE_ADDR = getremoteaddr();
+  if (empty($REMOTE_ADDR)) {
+    $REMOTE_ADDR = '0.0.0.0';
+  }
+
+  $timenow = time();
+  $info = addslashes($info);
+  if (!empty($url)) { 
+    $url = html_entity_decode($url); 
+  }
+
+  if(!empty($info)) {
+    //--debugging('Warning: logged very long info',DEBUG_DEVELOPER);
+  }
+  $url=stripslashes($url);
+  // If the 100 field size is changed, also need to alter print_log in course/lib.php
+  /*--if(!empty($url) && $tl->strlen($url)>100) {
+    $url=$tl->substr($url,0,97).'...';
+    debugging('Warning: logged very long URL',DEBUG_DEVELOPER);
+  }*/
+  if(!empty($url)) {
+    //--debugging('Warning: logged very long URL',DEBUG_DEVELOPER);
+  }
+  $url=addslashes($url);
+
+  if (defined('MDL_PERFDB')) { global $PERF ; $PERF->dbqueries++; $PERF->logwrites++;};
+
+  $info = empty($info) ? sql_empty() : $info; // Use proper empties for each database
+  $url  = empty($url)  ? sql_empty() : $url;
+  $sql ='INSERT INTO {log} (time, userid, ip, course, module, cmid, action, url, info)
+        VALUES (' . "$timenow, $userid, '$REMOTE_ADDR', $courseid, '$module', $cm, '$action', '$url', '$info')";
+
+  $record = new stdClass();
+  $record->time = $timenow;
+  $record->userid = $userid;
+  $record->ip   = $REMOTE_ADDR;
+  $record->course = $courseid;
+  $record->module = $module;
+  $record->cmid = $cm;
+  $record->action = $action;
+  $record->url  = $url;
+  $record->info = $info;
+  $result = $DB->insert_record('log', $record);
+
+  if (!$result) {
+    debugging('Error: Could not insert a new entry to the Moodle log', DEBUG_ALL);
+  }else{
+    return $result;
+  }
+
 }

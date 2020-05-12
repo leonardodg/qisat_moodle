@@ -421,6 +421,7 @@ $string['whydoesuserhavecap'] = 'Why does {$a->fullname} have capability {$a->ca
 $string['whydoesusernothavecap'] = 'Why does {$a->fullname} not have capability {$a->capability} in context {$a->context}?';
 $string['xroleassignments'] = '{$a}\'s role assignments';
 $string['xuserswiththerole'] = 'Users with the role "{$a->role}"';
+$string['site:viewindexpage'] = 'Permition of viewing of the initial page';
 
 // Deprecated since Moodle 2.8.
 

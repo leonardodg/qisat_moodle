@@ -83,6 +83,8 @@ if ($displaytype == RESOURCELIB_DISPLAY_OPEN) {
     }
 }
 
+$_SESSION['moduleAccess'] = $id;
+
 if ($redirect) {
     // coming from course page or url index page,
     // the redirection is needed for completion tracking and logging
@@ -104,6 +106,7 @@ if ($redirect) {
                     get_string('pageshouldredirect'), 10);
         }
     }
+    
     redirect($fullurl);
 }
 

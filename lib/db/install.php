@@ -306,4 +306,13 @@ function xmldb_main_install() {
     $DB->insert_record('my_pages', $mypage);
     $mypage->private = 1;
     $DB->insert_record('my_pages', $mypage);
+
+    $sql = "RENAME TABLE {course_modules_completion_bk} TO {course_modules_completion_bkp}";
+    $DB->execute($sql);
+
+    $sql = "RENAME TABLE {q_attempt_steps_bkp} TO {question_attempt_steps_bkp}";
+    $DB->execute($sql);
+
+    $sql = "RENAME TABLE {q_att_step_data_bkp} TO {question_attempt_step_data_bkp}";
+    $DB->execute($sql);
 }

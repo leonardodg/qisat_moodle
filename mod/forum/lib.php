@@ -2685,9 +2685,10 @@ function forum_get_discussions($cm, $forumsort="d.timemodified DESC", $fullpost=
 
     $allnames = get_all_user_name_fields(true, 'u');
     $sql = "SELECT $postdata, d.name, d.timemodified, d.usermodified, d.groupid, d.timestart, d.timeend, $allnames,
-                   u.email, u.picture, u.imagealt $umfields
+                   u.email, u.picture, u.imagealt $umfields, t.mostradata
               FROM {forum_discussions} d
                    JOIN {forum_posts} p ON p.discussion = d.id
+                   LEFT JOIN {forum_posts_time} t ON t.id = p.id
                    JOIN {user} u ON p.userid = u.id
                    $umtable
              WHERE d.forum = ? AND p.parent = 0
@@ -2957,12 +2958,14 @@ function forum_get_course_forum($courseid, $type) {
     if (!empty($USER->htmleditor)) {
         $forum->introformat = $USER->htmleditor;
     }
+    $visible = 1;
     switch ($forum->type) {
         case "news":
             $forum->name  = get_string("namenews", "forum");
             $forum->intro = get_string("intronews", "forum");
             $forum->forcesubscribe = FORUM_FORCESUBSCRIBE;
             $forum->assessed = 0;
+            $visible = 0;
             if ($courseid == SITEID) {
                 $forum->name  = get_string("sitenews");
                 $forum->forcesubscribe = 0;
@@ -2998,6 +3001,7 @@ function forum_get_course_forum($courseid, $type) {
     $mod->module = $module->id;
     $mod->instance = $forum->id;
     $mod->section = 0;
+    $mod->visible = $visible;
     include_once("$CFG->dirroot/course/lib.php");
     if (! $mod->coursemodule = add_course_module($mod) ) {
         echo $OUTPUT->notification("Could not add a new course module to the course '" . $courseid . "'");
@@ -4468,6 +4472,11 @@ function forum_update_post($post, $mform, &$message) {
     $DB->set_field('forum_posts', 'message', $post->message, array('id'=>$post->id));
 
     $DB->update_record('forum_discussions', $discussion);
+    
+    $forum_posts_time = new stdClass();
+    $forum_posts_time->id = $discussion->id;
+    $forum_posts_time->mostradata = empty($mform->timenow) ? 0 : 1;
+    $DB->update_record("forum_posts_time", $forum_posts_time);
 
     forum_add_attachment($post, $forum, $cm, $mform, $message);
 
@@ -4524,6 +4533,11 @@ function forum_add_discussion($discussion, $mform=null, $unused=null, $userid=nu
 
     $post->id = $DB->insert_record("forum_posts", $post);
 
+    $forum_posts_time = new stdClass();
+    $forum_posts_time->id = $post->id;
+    $forum_posts_time->mostradata = empty($mform->timenow) ? 0 : 1;
+    $DB->insert_record("forum_posts_time", $forum_posts_time);
+    
     // TODO: Fix the calling code so that there always is a $cm when this function is called
     if (!empty($cm->id) && !empty($discussion->itemid)) {   // In "single simple discussions" this may not exist yet
         $context = context_module::instance($cm->id);
@@ -4596,6 +4610,8 @@ function forum_delete_discussion($discussion, $fulldelete, $course, $cm, $forum)
     if (!$DB->delete_records("forum_discussions", array("id" => $discussion->id))) {
         $result = false;
     }
+    
+    $DB->delete_records("forum_posts_time", array("id" => $discussion->id));
 
     // Update completion state if we are tracking completion based on number of posts
     // But don't bother when deleting whole thing

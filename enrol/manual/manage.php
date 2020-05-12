@@ -28,7 +28,7 @@ require_once($CFG->dirroot.'/enrol/manual/locallib.php');
 $enrolid      = required_param('enrolid', PARAM_INT);
 $roleid       = optional_param('roleid', -1, PARAM_INT);
 $extendperiod = optional_param('extendperiod', 0, PARAM_INT);
-$extendbase   = optional_param('extendbase', 3, PARAM_INT);
+$extendbase   = optional_param('extendbase', '0', PARAM_TEXT);
 
 $instance = $DB->get_record('enrol', array('id'=>$enrolid, 'enrol'=>'manual'), '*', MUST_EXIST);
 $course = $DB->get_record('course', array('id'=>$instance->courseid), '*', MUST_EXIST);
@@ -96,18 +96,18 @@ $today = time();
 $today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
 
 // Enrolment start.
-$basemenu = array();
+/*$basemenu = array();
 if ($course->startdate > 0) {
     $basemenu[2] = get_string('coursestart') . ' (' . userdate($course->startdate, $timeformat) . ')';
 }
-$basemenu[3] = get_string('today') . ' (' . userdate($today, $timeformat) . ')' ;
+$basemenu[3] = get_string('today') . ' (' . userdate($today, $timeformat) . ')' ;*/
 
 // Process add and removes.
 if ($canenrol && optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) {
     $userstoassign = $potentialuserselector->get_selected_users();
     if (!empty($userstoassign)) {
         foreach($userstoassign as $adduser) {
-            switch($extendbase) {
+            /*switch($extendbase) {
                 case 2:
                     $timestart = $course->startdate;
                     break;
@@ -115,14 +115,59 @@ if ($canenrol && optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) 
                 default:
                     $timestart = $today;
                     break;
-            }
-
+            }*/
+        	$timestart = $extendbase;
+        	
             if ($extendperiod <= 0) {
                 $timeend = 0;
             } else {
-                $timeend = $timestart + $extendperiod;
+                $timeend = $timestart + $extendperiod - 1;
             }
+            
             $enrol_manual->enrol_user($instance, $adduser->id, $roleid, $timestart, $timeend);
+
+            $fromsite = new object;
+            $fromsite->firstname = get_site()->fullname;
+            $fromsite->lastname = '';
+            $fromsite->lastnamephonetic = '';
+            $fromsite->firstnamephonetic = '';
+            $fromsite->middlename = '';
+            $fromsite->alternatename = '';
+            $fromsite->email = $CFG->noreplyaddress;
+            $fromsite->maildisplay = true;
+            $fromsite->mailformat  = 1;
+            $admin = get_admin();
+            $adduser->mailformat = 1;
+
+            $fromemail = $DB->get_record('user', array('id' => $adduser->id), 'username,password', MUST_EXIST);
+            $fromemail->nome = $adduser->firstname . " " . $adduser->lastname;
+            $fromemail->curso = $course->fullname;
+            $fromemail->datainicio = date('d/m/Y', $timestart);
+
+            $configPlugin = $DB->get_record('config_plugins', array('plugin'=>'auth_aesauth','name'=>'authaeskey'));
+            if(!$configPlugin){
+                $mensagemErro = 'authaeskey não configurada no plugin auth_aesauth.';
+                trigger_error($mensagemErro, E_USER_ERROR);
+            }
+            $aes = new SecurityAES($configPlugin->value);
+            $fromemail->password = $aes->descriptografar($fromemail->password);
+
+            $emailsubject = get_string('emailenroltitulo', 'enrol_manual');
+            $emailbody = get_string('emailenrolmensagem', 'enrol_manual', $fromemail);
+            if (!email_to_user($adduser, $fromsite, get_site()->shortname .' | '.$emailsubject, '', $emailbody) ) {
+                mtrace("An error was encountered sending an email to " . $adduser->username ." - ". $adduser->firstname . " " . $adduser->lastname);
+            }else{
+                mtrace("Email sent to " . $adduser->username ." - ". $adduser->firstname . " " . $adduser->lastname);
+                $admin->mailformat = 1;
+
+                $fromemail->perfil = $DB->get_record('role', array('id' => $roleid), 'name', MUST_EXIST)->name;
+                $fromemail->nomeMatricula = $USER->firstname . " " . $USER->lastname;
+                $fromemail->prazo = date('z', $extendperiod);
+
+                $emailsubject = get_string('emailenroltituloadmin', 'enrol_manual');
+                $emailbody = get_string('emailenrolmensagemadmin', 'enrol_manual', $fromemail);
+                email_to_user($admin, $fromsite, get_site()->shortname .' | '.$emailsubject, '', $emailbody);
+            }
         }
 
         $potentialuserselector->invalidate_selected_users();
@@ -138,6 +183,9 @@ if ($canunenrol && optional_param('remove', false, PARAM_BOOL) && confirm_sesske
     if (!empty($userstounassign)) {
         foreach($userstounassign as $removeuser) {
             $enrol_manual->unenrol_user($instance, $removeuser->id);
+  
+            enviarEmail($USER->firstname.' '.$USER->lastname, $course->fullname);
+            add_log($course->id, 'course', 'unenrol', 'view.php?id='.$course->id, $course->id, 0, $USER->id);
         }
 
         $potentialuserselector->invalidate_selected_users();
@@ -147,6 +195,31 @@ if ($canunenrol && optional_param('remove', false, PARAM_BOOL) && confirm_sesske
     }
 }
 
+echo '<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+	<script>
+
+    $.noConflict();
+    jQuery(document).ready(function ($) {
+      $("#datepicker").datepicker({
+        dateFormat:"dd/mm/yy",
+        onSelect: function(){
+          var data = $("#datepicker").datepicker("getDate");
+          var milliseconds = Date.parse(data);
+          $("#extendbase").val(milliseconds/1000);
+        }
+      });
+      var d = new Date();
+      var dia = (d.getDate()>9?"":"0")+d.getDate();
+      var mes = ((d.getMonth()+1)>9?"":"0")+(d.getMonth()+1);
+      $("#datepicker").val(dia+"/"+mes+"/"+d.getFullYear());
+      var data = $("#datepicker").datepicker("getDate");
+      var milliseconds = Date.parse(data);
+      $("#extendbase").val(milliseconds/1000);
+    });
+
+	</script>';
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($instancename);
@@ -177,7 +250,8 @@ $removeenabled = $canunenrol ? '' : 'disabled="disabled"';
               <?php echo html_writer::select($periodmenu, 'extendperiod', $defaultperiod, $unlimitedperiod); ?></p>
 
               <p><label for="menuextendbase"><?php print_string('startingfrom') ?></label><br />
-              <?php echo html_writer::select($basemenu, 'extendbase', $extendbase, false); ?></p>
+              <input type="text" id="datepicker"/></p>
+              <input type="hidden" id="extendbase" name="extendbase"/>
 
               </div>
           </div>

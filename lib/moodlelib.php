@@ -2480,6 +2480,43 @@ function get_login_url() {
 function require_login($courseorid = null, $autologinguest = true, $cm = null, $setwantsurltome = true, $preventredirect = false) {
     global $CFG, $SESSION, $USER, $PAGE, $SITE, $DB, $OUTPUT;
 
+    if($CFG->enable_login_ecommerce == 1) {
+    	require_once($CFG->dirroot . '/vendor/aes/SecurityAES.php');
+        require_once($CFG->dirroot . '/login/lib.php');
+
+        $cookie = $_COOKIE['QiSat'];
+        $logar = false;
+
+        if(isset($_COOKIE['QiSat'])){
+        	$config = $DB->get_record_sql("SELECT * FROM {config} WHERE name = 'key_aes_integracao_login'");
+
+	        $aes = new SecurityAES($config->value);
+	        $dados = json_decode($aes->descriptografar($cookie));
+        
+        	if(!$USER->id || 
+    		   (isset($USER->username) && $USER->username != $dados->username)){
+        		$logar = true;
+        	}
+        }
+
+        if ($logar) {
+            $config = $DB->get_record_sql("SELECT * FROM {config} WHERE name = 'keyaes'");
+
+            $aes = new SecurityAES($config->value);
+            $dados->password = $aes->descriptografar($dados->password);
+
+
+            $user = authenticate_user_login($dados->username, $dados->password, false);
+            complete_user_login($user);
+            core\session\manager::apply_concurrent_login_limit($user->id, session_id());
+
+            $urltogo = core_login_get_return_url();
+        } elseif (!isset($_COOKIE['QiSat'])) {
+            require_logout();
+        }
+    }
+
+
     // Must not redirect when byteserving already started.
     if (!empty($_SERVER['HTTP_RANGE'])) {
         $preventredirect = true;
@@ -2737,6 +2774,16 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
 
         } else {
             if (isset($USER->enrol['enrolled'][$course->id])) {
+            	$sql = 'SELECT ra.* FROM {role_assignments} ra 
+			            INNER JOIN mdl_context c ON c.id = ra.contextid
+			            WHERE ra.userid = '.$USER->id.' and c.instanceid = '.$course->id.' and c.contextlevel = 50';
+			    $role_assignments = $DB->get_record_sql($sql);
+
+			    if(!is_null($role_assignments) && $role_assignments->roleid == 9){
+			    	unset($USER->enrol['enrolled'][$course->id]);
+			    	unset($USER->enrol['tempguest'][$course->id]);
+			    }
+
                 if ($USER->enrol['enrolled'][$course->id] > time()) {
                     $access = true;
                     if (isset($USER->enrol['tempguest'][$course->id])) {
@@ -2856,6 +2903,8 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
  */
 function require_logout() {
     global $USER, $DB;
+
+	setcookie('QiSat', null, -1, '/','qisat.com.br');
 
     if (!isloggedin()) {
         // This should not happen often, no need for hooks or events here.
@@ -5601,7 +5650,10 @@ function email_to_user($user, $from, $subject, $messagetext, $messagehtml = '', 
         $mail->Priority = $from->priority;
     }
 
-    if ($messagehtml && !empty($user->mailformat) && $user->mailformat == 1) {
+    /**
+     * Alteração Necessaria para incluir layout nos emails
+     *
+     *if ($messagehtml && !empty($user->mailformat) && $user->mailformat == 1) {
         // Don't ever send HTML to users who don't want it.
         $mail->isHTML(true);
         $mail->Encoding = 'quoted-printable';
@@ -5610,7 +5662,16 @@ function email_to_user($user, $from, $subject, $messagetext, $messagehtml = '', 
     } else {
         $mail->IsHTML(false);
         $mail->Body =  "\n$messagetext\n";
+    }*/
+    if (!$messagehtml || empty($user->mailformat)) {
+        $messagehtml =  $messagetext;
     }
+    $messagehtml = get_string('emailCabecalho') . $messagehtml . get_string('emailRodape');
+    $mail->isHTML(true);
+    $mail->Encoding = 'quoted-printable';
+    $mail->Body    =  $messagehtml;
+    $mail->AltBody =  "\n$messagetext\n";
+
 
     if ($attachment && $attachname) {
         if (preg_match( "~\\.\\.~" , $attachment )) {

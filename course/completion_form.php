@@ -76,6 +76,17 @@ class course_completion_form extends moodleform {
         $mform->addElement('select', 'overall_aggregation', get_string('overallaggregation', 'core_completion'), $overallaggregationmenu);
         $mform->setDefault('overall_aggregation', $completion->get_aggregation_method());
 
+        // Completion Percentage
+        $label = get_string('coursecompletioncondition', 'core_completion', get_string('completionpercentage', 'core_completion'));
+        $mform->addElement('header', 'percentage', $label);
+        // Expand the condition section if it is currently enabled.
+        $current = $completion->get_criteria(COMPLETION_CRITERIA_TYPE_PERCENTAGE);
+        if (!empty($current)) {
+            $mform->setExpanded('percentage');
+        }
+        $criteria = new completion_criteria_percentage($params);
+        $criteria->config_form_display($mform);
+
         // Activity completion criteria
         $label = get_string('coursecompletioncondition', 'core_completion', get_string('activitiescompleted', 'core_completion'));
         $mform->addElement('header', 'activitiescompleted', $label);

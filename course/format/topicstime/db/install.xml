@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="course/format/topicstime/db" VERSION="2015112600"
+       COMMENT="XMLDB file for Moodle course/format/topicstime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd">
+    <TABLES>
+        <TABLE NAME="course_section_access" COMMENT="Registros de tempo total de acesso por aula" NEXT="course_section_log">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="course_section_id"/>
+                <FIELD NAME="course_section_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="user_id"/>
+                <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="course_section_id" NEXT="tempo_total"/>
+                <FIELD NAME="tempo_total" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" PREVIOUS="user_id" NEXT="tempo_utilizado"/>
+                <FIELD NAME="tempo_utilizado" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" PREVIOUS="tempo_total"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="course_section_id" TYPE="foreign" FIELDS="course_section_id" REFTABLE="course_sections" REFFIELDS="id"/>
+                <KEY NAME="user_id" TYPE="foreign" FIELDS="user_id" REFTABLE="user" REFFIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="FK_course_section_access_mdl_course_sections" UNIQUE="false" FIELDS="course_section_id"/>
+                <INDEX NAME="FK_course_section_access_mdl_user" UNIQUE="false" FIELDS="user_id"/>
+            </INDEXES>
+        </TABLE>
+        <TABLE NAME="course_section_log" COMMENT="Registros de acesso nas aulas">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="course_section_id"/>
+                <FIELD NAME="course_section_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="user_id"/>
+                <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="course_section_id" NEXT="course_module_id"/>
+                <FIELD NAME="course_module_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="user_id" NEXT="inicio_acesso"/>
+                <FIELD NAME="inicio_acesso" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="course_module_id" NEXT="fim_acesso"/>
+                <FIELD NAME="fim_acesso" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="inicio_acesso"/>
+                <FIELD NAME="ip" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" PREVIOUS="fim_acesso"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>=
+                <KEY NAME="course_section_id" TYPE="foreign" FIELDS="course_section_id" REFTABLE="course_sections" REFFIELDS="id"/>
+                <KEY NAME="user_id" TYPE="foreign" FIELDS="user_id" REFTABLE="user" REFFIELDS="id"/>
+                <KEY NAME="course_module_id" TYPE="foreign" FIELDS="course_module_id" REFTABLE="mdl_course_modules" REFFIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="FK_course_section_log_mdl_course_sections" UNIQUE="false" FIELDS="course_section_id"/>
+                <INDEX NAME="FK_course_section_log_mdl_user" UNIQUE="false" FIELDS="user_id"/>
+                <INDEX NAME="FK_mdl_course_section_log_mdl_course_modules" UNIQUE="false" FIELDS="course_module_id"/>
+            </INDEXES>
+        </TABLE>
+        <TABLE NAME="course_section_access_bkp" COMMENT="Registros de tempo total de acesso por aula" NEXT="course_section_log">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="course_section_id"/>
+                <FIELD NAME="course_section_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="user_id"/>
+                <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="course_section_id" NEXT="tempo_total"/>
+                <FIELD NAME="tempo_total" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" PREVIOUS="user_id" NEXT="tempo_utilizado"/>
+                <FIELD NAME="tempo_utilizado" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" PREVIOUS="tempo_total"/>
+                <FIELD NAME="idreference" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="id da tabela quente"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="FK_course_section_access_mdl_course_sections" UNIQUE="false" FIELDS="course_section_id"/>
+                <INDEX NAME="FK_course_section_access_mdl_user" UNIQUE="false" FIELDS="user_id"/>
+            </INDEXES>
+        </TABLE>
+        <TABLE NAME="course_section_log_bkp" COMMENT="Registros de acesso nas aulas">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="course_section_id"/>
+                <FIELD NAME="course_section_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="user_id"/>
+                <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="course_section_id" NEXT="course_module_id"/>
+                <FIELD NAME="course_module_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="user_id" NEXT="inicio_acesso"/>
+                <FIELD NAME="inicio_acesso" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="course_module_id" NEXT="fim_acesso"/>
+                <FIELD NAME="fim_acesso" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="inicio_acesso" NEXT="ip"/>
+                <FIELD NAME="ip" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" PREVIOUS="fim_acesso" NEXT="idreference"/>
+                <FIELD NAME="idreference" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="id da tabela quente" PREVIOUS="ip"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="FK_course_section_log_mdl_course_sections" UNIQUE="false" FIELDS="course_section_id"/>
+                <INDEX NAME="FK_course_section_log_mdl_user" UNIQUE="false" FIELDS="user_id"/>
+                <INDEX NAME="FK_mdl_course_section_log_mdl_course_modules" UNIQUE="false" FIELDS="course_module_id"/>
+            </INDEXES>
+        </TABLE>
+    </TABLES>
+</XMLDB>

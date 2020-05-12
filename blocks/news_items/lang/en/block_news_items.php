@@ -24,4 +24,5 @@
 
 $string['news_items:addinstance'] = 'Add a new latest news block';
 $string['news_items:myaddinstance'] = 'Add a new latest news block to Dashboard';
-$string['pluginname'] = 'Latest news';
+//$string['pluginname'] = 'Latest news';
+$string['pluginname'] = 'Bulletin board';

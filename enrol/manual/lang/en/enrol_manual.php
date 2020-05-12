@@ -72,3 +72,30 @@ $string['wscannotenrol'] = 'Plugin instance cannot manually enrol a user in the 
 $string['wsnoinstance'] = 'Manual enrolment plugin instance doesn\'t exist or is disabled for the course (id = {$a->courseid})';
 $string['wsusercannotassign'] = 'You don\'t have the permission to assign this role ({$a->roleid}) to this user ({$a->userid}) in this course({$a->courseid}).';
 $string['manualpluginnotinstalled'] = 'The "Manual" plugin has not yet been installed';
+
+
+$string['emailunenroltitulo'] = 'Unsubscribe';
+$string['emailunenrolmensagem'] = 'The student {$a->name} had its manual canceled course registration {$a->fullname}, in day {$a->data}';
+
+$string['emailenroltitulo'] = 'Confirmation of enrollment';
+$string['emailenroltituloadmin'] = 'Registered User';
+$string['emailenrolmensagem'] = 'Dear {$a->nome}, <br>
+<br>
+Confirmed your registration in the course: <br>
+Course: {$a->curso} <br>
+Start at: {$a->datainicio} <br>
+<br>
+Your data to access are: <br>
+User: {$a->username} <br>
+Password: {$a->password} <br>
+To access the courses you must proceed as follows: <br>
+<br>
+   1. Access the Link address. <br>
+   2. At the top right of the page, enter the username and password previously available in this email.<br>
+   3. Click on the button "Access my Courses".<br>
+On the next page you will have access to the content and all the resources available in the course.<br>
+<br>
+If you wish to speak directly with the company, you can do so through the Registration Center.';
+$string['emailenrolmensagemadmin'] = 'The user {$a->nome} has been registered with profile of {$a->perfil},
+In the course {$a->curso} by user {$a->nomeMatricula}. {$a->prazo} days were released
+From day {$a->datainicio} on the Link platform.';

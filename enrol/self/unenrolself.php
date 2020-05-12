@@ -23,6 +23,7 @@
  */
 
 require('../../config.php');
+require_once($CFG->dirroot.'/enrol/self/locallib.php');
 
 $enrolid = required_param('enrolid', PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
@@ -49,6 +50,9 @@ $PAGE->set_title($plugin->get_instance_name($instance));
 
 if ($confirm and confirm_sesskey()) {
     $plugin->unenrol_user($instance, $USER->id);
+	
+	enviarEmail($USER->firstname.' '.$USER->lastname, $course->fullname);
+	add_log($course->id, 'course', 'unenrol', 'view.php?id='.$course->id, $course->id, 0, $USER->id);
 
     redirect(new moodle_url('/index.php'));
 }

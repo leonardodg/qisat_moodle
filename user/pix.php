@@ -1,51 +1,67 @@
-<?php
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+<?PHP
+require_once('../config.php');
+global $DB, $CFG;
+require_once($CFG->libdir.'/filelib.php');
+$CFG->pixpath = $CFG->wwwroot .'/pix';
 
-/**
- * BC user image location
- *
- * @package   core_user
- * @category  files
- * @copyright 2010 Petr Skoda (http://skodak.org)
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-define('NO_DEBUG_DISPLAY', true);
-define('NOMOODLECOOKIE', 1);
-
-require('../config.php');
-
-$PAGE->set_url('/user/pix.php');
-$PAGE->set_context(null);
-
-$relativepath = get_file_argument('pix.php');
-
-$args = explode('/', trim($relativepath, '/'));
-
-if (count($args) == 2) {
-    $userid = (integer)$args[0];
-    if ($args[1] === 'f1.jpg') {
-        $image = 'f1';
-    } else {
-        $image = 'f2';
-    }
-    if ($usercontext = context_user::instance($userid, IGNORE_MISSING)) {
-        $url = moodle_url::make_pluginfile_url($usercontext->id, 'user', 'icon', null, '/', $image);
-        redirect($url);
+if ($CFG->forcelogin) {
+    require_login();
+    //if(!empty($CFG->forcelogin) AND !isloggedin())
+    if (!isloggedin()) {
+        redirect($CFG->pixpath.'/u/f1.png');
     }
 }
 
-redirect($OUTPUT->pix_url('u/f1'));
+// disable moodle specific debug messages
+// disable_debugging();
+$relativepath = get_file_argument('pix.php');
+$args = explode('/', trim($relativepath, '/'));
+if (count($args) == 2) {
+    $userid   = (integer)$args[0];
+
+    $sql = "SELECT * FROM {user} u WHERE u.id = $userid AND u.deleted = 0 AND u.picture > 0";
+    if ($user = $DB->get_record_sql($sql)) {
+        $image    = $args[1];
+        $pathname = make_user_directory($userid, true) . "/$image";
+        if (strrpos(".", $pathname) === false) {
+            $extensoes = ['gif', 'jpe', 'jpeg', 'jpg', 'png', 'svg', 'svgz'];
+            foreach($extensoes as $extensao){
+                $pathname_extensao = $pathname . '.' . $extensao;
+                if (file_exists($pathname_extensao) and !is_dir($pathname_extensao)) {
+                    send_file($pathname_extensao, $image . '.' . $extensao);
+                }
+            }
+        } else if (file_exists($pathname) and !is_dir($pathname)) {
+            send_file($pathname, $image);
+        }
+    }
+}
+// picture was deleted - use default instead
+redirect($CFG->pixpath.'/u/f1.png');
+
+/**
+ * Makes a directory for a particular user.
+ *
+ * @uses $CFG
+ * @param int $userid The id of the user in question - maps to id field of 'user' table.
+ * @param bool $test Whether we are only testing the return value (do not create the directory)
+ * @return string|false Returns full path to directory if successful, false if not
+ */
+function make_user_directory($userid, $test=false) {
+    global $CFG;
+    if (is_bool($userid) || $userid < 0 || !preg_match('/^[0-9]{1,10}$/', $userid) || $userid > 2147483647) {
+        if (!$test) {
+            notify("Given userid was not a valid integer! (" . gettype($userid) . " $userid)");
+        }
+        return false;
+    }
+    // Generate a two-level path for the userid. First level groups them by slices of 1000 users, second level is userid
+    $level1 = floor($userid / 1000) * 1000;
+    $userdir = "user/$level1/$userid";
+    if ($test) {
+        return $CFG->dataroot . '/' . $userdir;
+    } else {
+        return make_upload_directory($userdir);
+    }
+}
+?>

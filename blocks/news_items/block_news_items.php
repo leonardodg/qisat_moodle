@@ -89,8 +89,7 @@ class block_news_items extends block_base {
 
         /// Get all the recent discussions we're allowed to see
 
-            if (! $discussions = forum_get_discussions($cm, 'p.modified DESC', false,
-                                                       $currentgroup, $this->page->course->newsitems) ) {
+            if (! $discussions = forum_get_discussions($cm, 'p.modified DESC', true, $currentgroup) ) {
                 $text .= '('.get_string('nonews', 'forum').')';
                 $this->content->text = $text;
                 return $this->content;
@@ -98,7 +97,7 @@ class block_news_items extends block_base {
 
         /// Actually create the listing now
 
-            $strftimerecent = get_string('strftimerecent');
+            $strftimerecent = get_string('strftimerecentfull');
             $strmore = get_string('more', 'forum');
 
         /// Accessibility: markup as a list.
@@ -110,18 +109,27 @@ class block_news_items extends block_base {
                 $discussion->subject = format_string($discussion->subject, true, $forum->course);
 
                 $text .= '<li class="post">'.
-                         '<div class="head clearfix">'.
-                         '<div class="date">'.userdate($discussion->modified, $strftimerecent).'</div>'.
-                         '<div class="name">'.fullname($discussion).'</div></div>'.
-                         '<div class="info"><a href="'.$CFG->wwwroot.'/mod/forum/discuss.php?d='.$discussion->discussion.'">'.$discussion->subject.'</a></div>'.
-                         "</li>\n";
+                		'<div class="head clearfix">';
+                $text .= '</div>' .
+                    '<div class="info">';
+                if (has_capability('block/news_items:manage', $context)) {
+                    $text .= '<a href="' . $CFG->wwwroot . '/mod/forum/discuss.php?d=' . $discussion->discussion . '">' . $discussion->subject . '</a>';
+                } else {
+                    $text .= '<b>' . $discussion->subject . '</b>';
+                }
+                $text .= '</div>' .
+                    '<div class="message">' . $discussion->message . '</div>';
+
+                if ($discussion->mostradata)
+                    $text .= '<div class="date" style="float:right;">'.userdate($discussion->modified, $strftimerecent).'</div>';
+
+                $text .= "</li>\n";
             }
             $text .= "</ul>\n";
 
             $this->content->text = $text;
 
-            $this->content->footer = '<a href="'.$CFG->wwwroot.'/mod/forum/view.php?f='.$forum->id.'">'.
-                                      get_string('oldertopics', 'forum').'</a> ...';
+            $this->content->footer = '';
 
         /// If RSS is activated at site and forum level and this forum has rss defined, show link
             if (isset($CFG->enablerssfeeds) && isset($CFG->forum_enablerssfeeds) &&

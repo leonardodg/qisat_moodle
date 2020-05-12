@@ -242,13 +242,29 @@ function xmldb_forum_upgrade($oldversion) {
 
     // Moodle v2.9.0 release upgrade line.
     // Put any upgrade step following this.
+
     if ($oldversion < 2015051102) {
+
+        // Define table forum_posts_time to be created.
+        $table = new xmldb_table('forum_posts_time');
+        
+        // Adding fields to table forum_posts_time.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('mostradata', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        
+        // Adding keys to table forum_posts_time.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Conditionally launch create table for forum_posts_time.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
         // Groupid = 0 is never valid.
         $DB->set_field('forum_discussions', 'groupid', -1, array('groupid' => 0));
-
         // Forum savepoint reached.
         upgrade_mod_savepoint(true, 2015051102, 'forum');
     }
-
+    
     return true;
 }

@@ -48,7 +48,20 @@ class mod_folder_mod_form extends moodleform_mod {
 
         //-------------------------------------------------------
         $mform->addElement('header', 'content', get_string('contentheader', 'folder'));
-        $mform->addElement('filemanager', 'files', get_string('files'), null, array('subdirs'=>1, 'accepted_types'=>'*'));
+        //$mform->addElement('filemanager', 'files', get_string('files'), null, array('subdirs'=>1, 'accepted_types'=>'*'));
+        require_once($CFG->dirroot . "/repository/coursefilearea/lib.php");
+        $cfa = new repository_coursefilearea();
+        $dir = $cfa->get_listing();
+        $lista = array();
+        foreach($dir['list'] as $dir){
+            if(isset($dir['children']))
+                $lista[$dir['title']] = $dir['title'];
+        }
+
+        //$mform->addElement('static', 'importante', get_string('directoryDownload', 'mod_folder'));
+        $mform->addElement('select', 'src', get_string('directory'), $lista);
+        $mform->addHelpButton('src', 'directory', 'mod_folder');
+
         $mform->addElement('select', 'display', get_string('display', 'mod_folder'),
                 array(FOLDER_DISPLAY_PAGE => get_string('displaypage', 'mod_folder'),
                     FOLDER_DISPLAY_INLINE => get_string('displayinline', 'mod_folder')));

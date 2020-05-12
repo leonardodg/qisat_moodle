@@ -1,0 +1,62 @@
+/*.generaltable, .generaltable tr:hover {
+    background: none repeat scroll 0 0 #ffffff;
+}*/
+
+.leftalign {
+	background: none !important;
+}
+
+.generaltable {
+	border-style: none !important;
+}
+
+.generaltable tr {
+	border-bottom: none !important;
+}
+
+.header {
+	/*background-color: white !important;*/
+	color: #555555 !important;
+}
+
+.cell {
+	border: none !important;
+}
+
+.linha {
+	background-color: #cccccc;
+	height: 1px;
+	width: 90%;
+	margin-bottom: 5px;
+}
+
+.pontilhado {
+	width: 90%;
+	background-image: url("../imagens/arrow.png");
+	background-repeat: no-repeat;
+	background-position: left 5px;
+	margin-top: 3px;
+	padding-bottom: 2px;
+	font-weight: bold;
+	font-size: 16px !important;
+	border-bottom-width: thin;
+	border-bottom-style: dotted;
+	border-bottom-color: #AAA;
+}
+
+.generaltable td.cell.c0 {
+	font-weight: normal !important;
+}
+
+.generaltable td.cell {
+	padding: 0px !important;
+}
+
+.link {
+	margin-left: 12px;
+	color: #555555 !important;
+}
+
+body#grade-report-user-index .generaltable,.generaltable th.header {
+	font-size: 18px !important;
+}

@@ -25,6 +25,161 @@
 defined('MOODLE_INTERNAL') || die();
 
 class enrol_manual_plugin extends enrol_plugin {
+	
+	/**
+	 * Enrol user into course via enrol instance.
+	 *
+	 * @param stdClass $instance
+	 * @param int $userid
+	 * @param int $roleid optional role id
+	 * @param int $timestart 0 means unknown
+	 * @param int $timeend 0 means forever
+	 * @param int $status default to ENROL_USER_ACTIVE for new enrolments, no change by default in updates
+	 * @param bool $recovergrades restore grade history
+	 * @return void
+	 */
+	public function enrol_user(stdClass $instance, $userid, $roleid = null, $timestart = 0, $timeend = 0, $status = null, $recovergrades = null, $alternativeHostid = 1, $proposta = null, $produto = null) {
+		global $DB, $USER, $CFG; // CFG necessary!!!
+	
+		if ($instance->courseid == SITEID) {
+			throw new coding_exception('invalid attempt to enrol into frontpage course!');
+		}
+	
+		$name = $this->get_name();
+		$courseid = $instance->courseid;
+	
+		if ($instance->enrol !== $name) {
+			throw new coding_exception('invalid enrol instance!');
+		}
+		$context = context_course::instance($instance->courseid, MUST_EXIST);
+		if (!isset($recovergrades)) {
+			$recovergrades = $CFG->recovergradesdefault;
+		}
+
+		//if ($ue = $DB->get_record('user_enrolments', array('enrolid'=>$instance->id, 'userid'=>$userid))) {
+        $sql = "SELECT ue.id FROM {user_enrolments} ue INNER JOIN {enrol} e ON e.id = ue.enrolid
+                  WHERE ue.userid = :userid AND e.courseid = :courseid";
+
+        $isTrilha = $DB->record_exists('fase', array('ecm_produto_id' => $produto));
+        $inserted = true;
+
+        if (!empty($DB->get_records_sql($sql, array('userid'=>$userid, 'courseid'=>$courseid)))) {
+
+            if($isTrilha){
+                $classe = 'RoleAssignmentsTrilhaBkp';
+                $nomeArquivo = $CFG->dirroot.'/enrol/multimatricula/'.$classe.'.php';
+                if(file_exists($nomeArquivo)){
+                    require_once $nomeArquivo;
+                    $execute = new $classe;
+                    $execute->setUser($userid);
+                    $execute->setCourse($courseid);
+                    $execute->executeBackup();
+                    $inserted = false;
+                }
+            }else{
+                require_once($CFG->dirroot.'/enrol/multimatricula/EnrolBkp.php');
+                $inscrito = $DB->get_record('user', array('id'=>$userid));
+                $course = $DB->get_record('course', array('id'=>$courseid));
+                $enrolBkp = new EnrolBkp($inscrito, $course);
+                $enrolBkp->executeBackup();
+
+                if($roleid == 11){
+                    $roleid = 5;
+                    $status = ENROL_USER_ACTIVE;
+                }
+            }
+		}
+
+        if ($inserted) {
+            $ue = new stdClass();
+            $ue->enrolid      = $instance->id;
+            $ue->status       = is_null($status) ? ENROL_USER_ACTIVE : $status;
+            $ue->userid       = $userid;
+            $ue->timestart    = $timestart;
+            $ue->timeend      = $timeend;
+            $ue->modifierid   = $USER->id;
+            $ue->timecreated  = time();
+            $ue->timemodified = $ue->timecreated;
+            $ue->ecm_alternative_host_id = $alternativeHostid;
+            if(!is_null($proposta)) $ue->proposta = $proposta;
+            if(!is_null($produto)) $ue->ecm_produto_id = $produto;
+            $ue->id = $DB->insert_record('user_enrolments', $ue);
+
+			// Trigger event.
+			$event = \core\event\user_enrolment_created::create(
+					array(
+							'objectid' => $ue->id,
+							'courseid' => $courseid,
+							'context' => $context,
+							'relateduserid' => $ue->userid,
+							'other' => array('enrol' => $name)
+					)
+			);
+
+            if ($roleid) {
+                // this must be done after the enrolment event so that the role_assigned event is triggered afterwards
+                if ($this->roles_protected()) {
+                    role_assign($roleid, $userid, $context->id, 'enrol_'.$name, $instance->id);
+                } else {
+                    role_assign($roleid, $userid, $context->id);
+                }
+            }
+
+            // Recover old grades if present.
+            if ($recovergrades) {
+                require_once("$CFG->libdir/gradelib.php");
+                grade_recover_history_grades($userid, $courseid);
+            }
+
+            // reset current user enrolment caching
+            if ($userid == $USER->id) {
+                if (isset($USER->enrol['enrolled'][$courseid])) {
+                    unset($USER->enrol['enrolled'][$courseid]);
+                }
+                if (isset($USER->enrol['tempguest'][$courseid])) {
+                    unset($USER->enrol['tempguest'][$courseid]);
+                    remove_temp_course_roles($context);
+                }
+            }
+		} else {
+            $sql = "SELECT ue.* FROM {user_enrolments} ue INNER JOIN {enrol} e ON e.id = ue.enrolid
+                  WHERE ue.userid = :userid AND e.courseid = :courseid";
+
+            $ue = $DB->get_record_sql($sql, array('userid'=>$userid, 'courseid'=>$courseid));
+            $ue->status       = is_null($status) ? ENROL_USER_ACTIVE : $status;
+            $ue->timestart    = $timestart;
+            $ue->timeend      = $timeend;
+            $ue->modifierid   = $USER->id;
+            $ue->timecreated  = time();
+            $ue->timemodified = $ue->timecreated;
+            if(!is_null($proposta)) $ue->proposta = $proposta;
+            if(!is_null($produto)) $ue->ecm_produto_id = $produto;
+            $DB->update_record('user_enrolments', $ue);
+
+            if ($roleid) {
+                $sql = "SELECT ra.* FROM {role_assignments} ra INNER JOIN {context} co ON co.id = ra.contextid
+                  WHERE ra.userid = :userid AND co.instanceid = :courseid";
+
+                $ra = $DB->get_record_sql($sql, array('userid'=>$userid, 'courseid'=>$courseid));
+                $ra->roleid       = $roleid;
+                $ra->timemodified = $ue->timecreated;
+                $ra->modifierid   = $USER->id;
+                $DB->update_record('role_assignments', $ra);
+            }
+
+            $event = \core\event\user_enrolment_updated::create(
+                array(
+                    'objectid' => $ue->id,
+                    'courseid' => $courseid,
+                    'context' => $context,
+                    'relateduserid' => $ue->userid,
+                    'other' => array('enrol' => $name)
+                )
+            );
+        }
+
+        $event->trigger();
+	}
 
     protected $lasternoller = null;
     protected $lasternollerinstanceid = 0;
@@ -224,7 +379,9 @@ class enrol_manual_plugin extends enrol_plugin {
 
         $button = new enrol_user_button($manuallink, get_string('enrolusers', 'enrol_manual'), 'get');
         $button->class .= ' enrol_manual_plugin';
-
+        
+        return $button;
+        
         $startdate = $manager->get_course()->startdate;
         $startdateoptions = array();
         $timeformat = get_string('strftimedatefullshort');
