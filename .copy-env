@@ -1,13 +1,35 @@
-# In case of a reverse proxy please change the following setting
-# It should have the url that the USER provides into her/his browser.
+UID=1000
+GID=888
 
-MOODLE_URL=#LINK DE ACESSO - EXEMPLO=http://localhost:8082
+##### ------- CONFIG DATABASE ------- #####
+DB_ROOT_PASSWORD=qisat
+DB_USER=qisat
+DB_PASSWORD=qisat.123
+DB_NAME=qisat_moodle38
+DB_HOST=moodle_38_db
+DB_TYPE=mariadb
+DB_LIBRARY=native
+DB_PREFIX=mdl_
 
-# Database configuration
-DB_ROOT_PASSWORD=#SENHA ROOT DO BANCO
-MOODLE_DB_USER=#NOME DO USER PARA ACESSO AO BANCO
-MOODLE_DB_PASSWORD=#SENHA DO USER PARA ACESSO AO BANCO
-MOODLE_DB_NAME=#NOME DA BASE DE DADOS
+##### ------- PATH'S MAQUINA HOST ------- #####
+PATH_HOST_WWW_MOODLE=./
+PATH_HOST_MOODLE_DATA=../moodle_data
+
+##### ------- PATH'S MAQUINA CONTAINER ------- #####
+PATH_MOODLE_DATA=/var/www/moodledata
+
+##### ----- PORTAS MAQUINA HOST ------- #####
+WWW_HOST_PORT=80
+SSL_HOST_PORT=443
+DB_HOST_PORT=3308
+
+##### ----- PORTAS MAQUINA CONTAINER ------- #####
+WWW_CTNR_PORT=80
+SSL_CTNR_PORT=443
+DB_CTNR_PORT=3306
+
+#### ------------ MOODLE ------------#######
+MOODLE_URL=https://local-moodle.qisat.dev
 
 # Default user
 MOODLE_ADMIN=admin
@@ -21,15 +43,3 @@ MOODLE_SSL=false
 #mail settings
 MOODLE_EMAIL_TYPE_QMAIL=false # Set true is qmail MTA a used
 MOODLE_EMAIL_HOST=#host where the email is being sent
-
-##### ------- PATH'S ------- #####
-PATH_MOODLE_WWW=# CAMINHO DO DIRETORIO WWW
-PATH_MOODLE_DATA=# CAMINHO DO DIRETORIO MOODLE DATA
-PATH_MYSQL_DATA=# CAMINHO DO DIRETORIO DO BANCO
-
-##### ----- PORTAS ------- #####
-WWW_PORT=#PORTA PARA ACESSO WWW
-MARIADB_PORT_NUMBER=#PORTA PARA ACESSO AO BANCO
-
-##### -------- HOST_NAME --------- #####
-MARIADB_HOST=moodle_db
