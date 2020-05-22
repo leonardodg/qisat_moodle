@@ -1,0 +1,6 @@
+.git
+.vscode
+Dockerfile
+.DS_Store
+.gitignore
+README.md

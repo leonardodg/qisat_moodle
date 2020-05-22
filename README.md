@@ -7,24 +7,39 @@
 - **Install**:
 $ git clone git@gitlab.qisat.com.br:qisat/moodle.git
 
-- **Run Start Guide**
+- **Start Guide**
+$ copy ./docker/php/php.ini-development ./docker/php/php.ini
 $ copy .copy-env .env
 $ docker-compose up -d --build 
 
 ## CONFIG FILE .env
-MOODLE_URL=#LINK DE ACESSO - EXEMPLO=http://localhost:8082
-DB_ROOT_PASSWORD=#SENHA ROOT DO BANCO
-MOODLE_DB_USER=#NOME DO USER PARA ACESSO AO BANCO
-MOODLE_DB_PASSWORD=#SENHA DO USER PARA ACESSO AO BANCO
-MOODLE_DB_NAME=#NOME DA BASE DE DADOS
-PATH_MOODLE_WWW=# CAMINHO DO DIRETORIO WWW
-PATH_MOODLE_DATA=# CAMINHO DO DIRETORIO MOODLE DATA
-PATH_MYSQL_DATA=# CAMINHO DO DIRETORIO DO BANCO
-WWW_PORT=#PORTA PARA ACESSO WWW
-MARIADB_PORT_NUMBER=#PORTA PARA ACESSO AO BANCO
+
+------- CONFIG DATABASE ------------
+DB_ROOT_PASSWORD=qisat
+DB_USER=qisat
+DB_PASSWORD=qisat.123
+DB_NAME=qisat_moodle38
+DB_HOST=moodle_38_db
+DB_TYPE=mariadb
+DB_LIBRARY=native
+DB_PREFIX=mdl_
+------- PATH'S MAQUINA HOST ---------
+PATH_HOST_WWW_MOODLE=./
+PATH_HOST_MOODLE_DATA=../moodle_data
+------- PATH'S MAQUINA CONTAINER ----
+PATH_MOODLE_DATA=/var/www/moodledata
+----- PORTAS MAQUINA HOST -----------
+WWW_HOST_PORT=80
+SSL_HOST_PORT=443
+DB_HOST_PORT=3308
+----- PORTAS MAQUINA CONTAINER -------
+WWW_CTNR_PORT=80
+SSL_CTNR_PORT=443
+DB_CTNR_PORT=3306
+------------ MOODLE ------------------
+MOODLE_URL=https://local-moodle.qisat.dev
 
 ### Config Extra Git
-
 
 $ git config --global core.filemode false
 $ git config --global core.autocrlf false

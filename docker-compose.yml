@@ -13,8 +13,9 @@ services:
       --innodb_large_prefix=On
     volumes:
       - 'qisat_moodle38:/var/lib/mysql:rw'
+      #- 'C:/localhost/qisat/mysql:/var/backup:rw'
     ports:
-      - "${DB_HOST_PORT}:3306"
+      - "${DB_HOST_PORT}:${DB_CTNR_PORT}"
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
@@ -29,8 +30,8 @@ services:
       - '${PATH_HOST_MOODLE_DATA}:/var/www/moodledata:rw'
       - '${PATH_HOST_WWW_MOODLE}:/var/www/html/moodle:rw'
     ports:
-      - '${WWW_HOST_PORT}:80'
-      - '${SSL_HOST_PORT}:443'
+      - '${WWW_HOST_PORT}:${WWW_CTNR_PORT}'
+      - '${SSL_HOST_PORT}:${SSL_CTNR_PORT}'
     links:
       - moodle_38_db
     environment:
