@@ -18,7 +18,7 @@
 /**
  * External login API
  *
- * @package    core_login
+ * @package    enrol_qisat
  * @category   external
  * @copyright  2020 Inty Castillo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -37,7 +37,7 @@ require_once("$CFG->libdir/externallib.php");
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since Moodle 3.8
  */
-class core_login_external extends external_api {
+class enrol_qisat_external extends external_api {
 
     /**
      * Returns description of method parameters
@@ -45,13 +45,15 @@ class core_login_external extends external_api {
      * @return external_function_parameters
      * @since Moodle 2.2
      */
-    public static function login_user_parameters() {
+    public static function enrol_login_parameters() {
         return new external_function_parameters(array(
             'username' => new external_value(core_user::get_property_type('username'),
                 'Username policy is defined in Moodle security config.'),
             'password' => new external_value(core_user::get_property_type('password'),
                 'Plain text password consisting of any characters'),
             'courseid' => new external_value(PARAM_INT, 'Id of the course'),
+            'start' => new external_value(PARAM_INT, 'Initial course period', VALUE_DEFAULT, 0),
+            'end' => new external_value(PARAM_INT, 'Final course period', VALUE_DEFAULT, 0),
             // User
             'user' => new external_single_structure([
                 'firstname' => new external_value(core_user::get_property_type('firstname'), 'The first name(s) of the user'),
@@ -122,38 +124,7 @@ class core_login_external extends external_api {
                             'value' => new external_value(PARAM_RAW, 'The value of the preference')
                         ]
                     ), 'User preferences', VALUE_OPTIONAL),
-/*
-                // user dados
-                'dados' => new external_single_structure([
-                    'numero' => new external_value(PARAM_ALPHANUMEXT, 'CPF/CNPJ', VALUE_OPTIONAL),
-                    'tipousuario' => new external_value(PARAM_ALPHANUMEXT, 'Fisico/Juridico', VALUE_OPTIONAL),
-                    'numero_crea' => new external_value(PARAM_TEXT, 'Numero de cadastro do CREA', VALUE_OPTIONAL),
-                    // funcionarioqisat
-                    'email_oferta' => new external_value(PARAM_BOOL, 'Ofertas', VALUE_OPTIONAL),
-                    'email_andamento' => new external_value(PARAM_BOOL, 'Andamento do aluno/cliente', VALUE_OPTIONAL),
-                    'email_mensagem_privada' => new external_value(PARAM_BOOL, 'Recebimento de mensagens privadas', VALUE_OPTIONAL),
-                    'email_ausente' => new external_value(PARAM_BOOL, 'Ausências', VALUE_OPTIONAL),
-                    'email_suporte' => new external_value(PARAM_BOOL, 'Recebimento de suporte', VALUE_OPTIONAL),
-                    'ligacao_lancamentos' => new external_value(PARAM_BOOL, 'Receber ligações sobre lançamentos de produtos', VALUE_OPTIONAL),
-                    'ligacao_pagamento' => new external_value(PARAM_BOOL, 'Receber ligações sobre pagamentos', VALUE_OPTIONAL),
-                    'sms_informacoes' => new external_value(PARAM_BOOL, 'Sms de informações gerais', VALUE_OPTIONAL),
-                    'sms_lancamentos' => new external_value(PARAM_BOOL, 'Sms sobre lançamento de produtos', VALUE_OPTIONAL),
-                    'conta_azul' => new external_value(PARAM_TEXT, 'Conta do cliente no sistema conta azul', VALUE_OPTIONAL),
-                    'tipo_inscricao_estadual' => new external_value(PARAM_ALPHANUMEXT, 'Tipo de inscrição estadual', VALUE_OPTIONAL),
-                    'numero_inscricao_estadual' => new external_value(PARAM_TEXT, 'Número de inscrição estadual', VALUE_OPTIONAL),
-                    'numero_inscricao_municipal' => new external_value(PARAM_TEXT, 'Número de inscrição municipal', VALUE_OPTIONAL),
-                ], 'User dados', VALUE_OPTIONAL),
-                
-                // user endereco
-                'endereco' => new external_single_structure([
-                    'number' => new external_value(PARAM_INT, 'Número da casa', VALUE_OPTIONAL),
-                    'complement' => new external_value(PARAM_TEXT, 'Complemento do endereço', VALUE_OPTIONAL),
-                    'district' => new external_value(PARAM_TEXT, 'Bairro', VALUE_OPTIONAL),
-                    'state' => new external_value(PARAM_TEXT, 'Sigla do estado', VALUE_OPTIONAL),
-                    'cep' => new external_value(PARAM_TEXT, 'Código postal', VALUE_OPTIONAL),
-                    'updateaddress' => new external_value(PARAM_BOOL, 'Email display', VALUE_OPTIONAL),
-                ], 'User endereco', VALUE_OPTIONAL),
-*/
+
             ], 'User Create', VALUE_OPTIONAL),
         ));
     }
@@ -165,54 +136,33 @@ class core_login_external extends external_api {
      * @param string $username 
      * @param string $password 
      * @param int $courseid 
+     * @param int $start 
+     * @param int $end 
      * @param array $user 
      * @return array 
      * @since Moodle 2.2
      */
-    public static function login_user($username, $password, $courseid, $user = null) {
+    public static function enrol_login($username, $password, $courseid, $start = null, $end = null, $user = null) {
         global $CFG, $DB;
 
-        require_once($CFG->dirroot.'/enrol/manual/externallib.php');
-        require_once($CFG->dirroot.'/group/lib.php');
         require_once($CFG->dirroot.'/user/externallib.php');
 
         $parameters = array(
             'username' => $username,
             'password' => $password,
             'courseid' => $courseid,
+            'start'    => $start,
+            'end'      => $end
         );
-
         if(!is_null($user))
             $parameters['user'] = $user;
 
-        $params = self::validate_parameters(self::login_user_parameters(), $parameters);
+        $params = self::validate_parameters(self::enrol_login_parameters(), $parameters);
 
         if (array_key_exists('user', $params) && !$DB->record_exists('user', array('username' => $params['username'], 'mnethostid' => $CFG->mnet_localhost_id))) {
             $params['user']['username'] = $params['username'];
             $params['user']['password'] = $params['password'];
-            $userids = core_user_external::create_users(array($params['user']));
-            
-            /*
-            if(in_array('dados', $params['user']) && !empty($params['user']['dados'])){
-                // validate e formatar numero (cpf/cnpj)
-                // validate tipousuario
-                if(in_array('tipousuario', $params['user']['dados']) && !in_array($params['user']['dados']['tipousuario'], array('fisico','juridico')))
-                    unset($params['user']['dados']['tipousuario']);
-
-                // validate tipo_inscricao_estadual
-                if(in_array('tipo_inscricao_estadual', $params['user']['dados']) && !in_array($params['user']['dados']['tipo_inscricao_estadual'], array('Contribuinte','Contribuinte Isento','Nao Contribuinte')))
-                    unset($params['user']['dados']['tipo_inscricao_estadual']);
-
-                $params['user']['dados']['mdl_user_id'] = $userids[0]['id'];
-                $DB->insert_record('user_dados', $params['user']['dados']);
-            }
-            if(in_array('endereco', $params['user']) && !empty($params['user']['endereco'])){
-                $params['user']['endereco']['id'] = $userids[0]['id'];
-                $DB->insert_record('user_endereco', $params['user']['endereco']);
-            }
-            */
-            //$presignupcache = \cache::make('core', 'presignup');
-            //$presignupcache->purge_current_user();
+            core_user_external::create_users(array($params['user']));
         }
 
         if($user = authenticate_user_login($params['username'], $params['password'], false)){
@@ -220,27 +170,18 @@ class core_login_external extends external_api {
             if(is_enrolled($context, $user->id, '', true)) 
                 return array('url' => $CFG->wwwroot.'/course/view.php?id='.$params['courseid']);
             
-            try {
-                enrol_manual_external::enrol_users(array(array('roleid' => 5, 'userid' => $user->id, 'courseid' => $params['courseid'])));
-                
-                $group = $DB->get_record('groups', array('enrolmentkey' => $_REQUEST['wstoken']), '*', MUST_EXIST);
-            } catch (Exception $e) {
-                $course = $DB->get_record('course', array('id' => $params['courseid']), '*', MUST_EXIST);
-                    
-                $external_tokens = $DB->get_record('external_tokens', array('token' => $_REQUEST['wstoken']), '*', MUST_EXIST);
-                $external_services = $DB->get_record('external_services', array('id' => $external_tokens->externalserviceid), '*', MUST_EXIST);
-                $turma = 'Turma '.$external_services->name.' '.date("Y");
-
-                $group = new stdClass();
-                $group->id = groups_create_group((object)array(
-                    'courseid'     => $params['courseid'],
-                    'name'         => $turma,
-                    'description'  => $turma . ' - ' . $course->fullname,
-                    'enrolmentkey' => $_REQUEST['wstoken']
-                ));
-            } 
-            groups_add_member($group->id, $user->id);
-                
+            $enrol = enrol_get_plugin('qisat');
+            if (empty($enrol)) {
+                throw new moodle_exception('qisatpluginnotinstalled', 'enrol_qisat');
+            }
+            $enrol->enrol_user_qisat(array(
+                'userid'    => $user->id, 
+                'courseid'  => $params['courseid'], 
+                'timestart' => $start_time, 
+                'timeend'   => $end_time
+            ));
+            $enrol->groups_qisat_add_member($params['courseid'], $user->id, $_REQUEST['wstoken']);
+    
             return array('url' => $CFG->wwwroot.'/course/view.php?id='.$params['courseid']);
         }
 
@@ -253,7 +194,7 @@ class core_login_external extends external_api {
      * @return external_description
      * @since Moodle 2.2
      */
-    public static function login_user_returns() {
+    public static function enrol_login_returns() {
         return new external_single_structure(
             array(
                 'url' => new external_value(PARAM_RAW, 'Url de acesso')
