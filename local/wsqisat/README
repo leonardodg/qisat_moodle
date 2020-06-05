@@ -1,0 +1,9 @@
+
+Web Service QiSat Plugin for Moodle 3.X
+------------------------------------------
+
+Plugin Basic QiSat Start 
+
+To test:
+1- install the plugin in moodle/local/wsqisat/
+2- Read, setup and run moodle/local/wsqisat/client/client.php
