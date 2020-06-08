@@ -134,12 +134,11 @@ class enrol_qisat_plugin extends enrol_plugin {
         return $roles;
     }
 
-
     /**
      * Enrolment of users.
      *
-     * @param stdClass $instance
-     * @return moodle_url
+     * @param array object with fundamental data to enroll a student in a course
+     * @return void
      */
     public function enrol_user_qisat($enrolment) {
         global $DB, $CFG;
@@ -207,6 +206,14 @@ class enrol_qisat_plugin extends enrol_plugin {
         $transaction->allow_commit();
     }
 
+    /**
+     * Add a user already enrolled in a course, in a group.
+     *
+     * @param int course id
+     * @param int user id 
+     * @param string Service / group access token
+     * @return void
+     */
     function groups_qisat_add_member($courseid, $userid, $token){
         global $CFG, $DB;
         require_once($CFG->dirroot . '/group/lib.php');
@@ -248,7 +255,9 @@ class enrol_qisat_plugin extends enrol_plugin {
     /**
      * returns the course group according to the token
      *
-     * @return object
+     * @param int course id
+     * @param string Service / group access token
+     * @return object|boolean a group object
      */
     function get_group($courseid, $token) {
         global $CFG;
@@ -261,6 +270,30 @@ class enrol_qisat_plugin extends enrol_plugin {
         }
 
         return false;
+    }
+
+    /**
+     * Returns the url of the course image
+     * 
+     * @param int course id
+     * @return String 
+     */
+    public function get_course_image($courseid) {
+        global $CFG;
+        $url = '';
+        require_once( $CFG->libdir . '/filelib.php' );
+
+        $context = context_course::instance($courseid);
+        $fs = get_file_storage();
+        $files = $fs->get_area_files( $context->id, 'course', 'overviewfiles', 0 );
+
+        foreach ( $files as $f ) {
+            if ($f->is_valid_image()) {
+                $url = moodle_url::make_pluginfile_url( $f->get_contextid(), $f->get_component(), $f->get_filearea(), null, $f->get_filepath(), $f->get_filename(), false );
+            }
+        }
+
+        return $url;
     }
 
 }

@@ -145,6 +145,7 @@ class enrol_qisat_external extends external_api {
     public static function enrol_login($username, $password, $courseid, $start = null, $end = null, $user = null) {
         global $CFG, $DB;
 
+        require_once($CFG->libdir.'/enrollib.php');
         require_once($CFG->dirroot.'/user/externallib.php');
 
         $parameters = array(
@@ -165,15 +166,26 @@ class enrol_qisat_external extends external_api {
             core_user_external::create_users(array($params['user']));
         }
 
+        $return = array('status' => false);
+        // Alterar forma de autenticação
         if($user = authenticate_user_login($params['username'], $params['password'], false)){
-            $context = context_course::instance($params['courseid']);
-            if(is_enrolled($context, $user->id, '', true)) 
-                return array('url' => $CFG->wwwroot.'/course/view.php?id='.$params['courseid']);
-            
             $enrol = enrol_get_plugin('qisat');
             if (empty($enrol)) {
                 throw new moodle_exception('qisatpluginnotinstalled', 'enrol_qisat');
             }
+
+            $course = $DB->get_record('course', array('id'=>$params['courseid']));
+            $context = context_course::instance($params['courseid']);
+
+            $return = array('status' => is_enrolled($context, $user->id, '', true),
+                            'imagem' => $enrol->get_course_image($params['courseid'])->out(),
+                            'nome'   => $user->firstname.' '.$user->lastname,
+                            'sigla'  => $course->shortname,
+                            'url'    => $CFG->wwwroot.'/course/view.php?id='.$params['courseid']);
+
+            if(is_enrolled($context, $user->id, '', true)) 
+                return $return;
+            
             $enrol->enrol_user_qisat(array(
                 'userid'    => $user->id, 
                 'courseid'  => $params['courseid'], 
@@ -181,11 +193,9 @@ class enrol_qisat_external extends external_api {
                 'timeend'   => $end_time
             ));
             $enrol->groups_qisat_add_member($params['courseid'], $user->id, $_REQUEST['wstoken']);
-    
-            return array('url' => $CFG->wwwroot.'/course/view.php?id='.$params['courseid']);
         }
 
-        return array('url' => false);
+        return $return;
     }
 
     /**
@@ -197,7 +207,11 @@ class enrol_qisat_external extends external_api {
     public static function enrol_login_returns() {
         return new external_single_structure(
             array(
-                'url' => new external_value(PARAM_RAW, 'Url de acesso')
+                'status' => new external_value(PARAM_RAW, 'Url de acesso'),
+                'nome'   => new external_value(PARAM_RAW, 'Url de acesso', VALUE_OPTIONAL),
+                'sigla'  => new external_value(PARAM_RAW, 'Url de acesso', VALUE_OPTIONAL),
+                'url'    => new external_value(PARAM_RAW, 'Url de acesso', VALUE_OPTIONAL),
+                'imagem' => new external_value(PARAM_RAW, 'Url de acesso', VALUE_OPTIONAL)
             )
         );
     }
