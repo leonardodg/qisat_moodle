@@ -296,5 +296,48 @@ class enrol_qisat_plugin extends enrol_plugin {
         return $url;
     }
 
+    /**
+     * Returns the url of the course image
+     * 
+     * @param int user id
+     * @param int course id
+     * @return String 
+     */
+    public function get_status_curso($userid, $courseid){
+        global $DB;
+
+        $sql = "SELECT * FROM {user_enrolments} ue 
+                INNER JOIN {enrol} en ON en.id = ue.enrolid 
+                WHERE ue.userid = :userid AND en.courseid = :courseid";
+        $user_enrolments = $DB->get_record_sql($sql, array('userid' => $userid, 'courseid' => $courseid));
+
+        if(!is_null($user_enrolments) && $user_enrolments->status)
+            return get_string('status_blocked', 'enrol_qisat');
+
+        $dt_atual = mktime(0,0,0,date('m'),date('d'),date('Y'));
+        $dt_inicio = $user_enrolments->timestart;
+        if($dt_inicio > ($dt_atual + 86399))
+            return get_string('scheduled_status', 'enrol_qisat');
+
+        $dt_fim = $user_enrolments->timeend;
+        if($dt_fim == 0)
+            return get_string('status_released', 'enrol_qisat');
+
+        $validade = floor($user_enrolments->enrolperiod / 86400);
+        if(($dt_atual > $dt_fim) && ($validade)){
+            $sql = "SELECT * FROM {certificate} ce 
+                    INNER JOIN {certificate_issues} ci ON ci.certificateid = ce.id 
+                    WHERE ci.userid = :userid AND ce.courseid = :courseid";
+            $certificate = $DB->get_record_sql($sql, array('userid' => $userid, 'courseid' => $courseid));
+
+            if(isset($mdlCertificate))
+                return get_string('status_finalized', 'enrol_qisat');
+
+            return get_string('closed_status', 'enrol_qisat');
+        }
+
+        return get_string('status_released', 'enrol_qisat');
+    }
+
 }
 

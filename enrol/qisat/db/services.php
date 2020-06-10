@@ -26,13 +26,23 @@
 $functions = array(
 
     // === enrol related functions ===
-    'enrol_qisat_enrol_login' => array(
+    'enrol_qisat_create_user_enrol' => array(
         'classname'   => 'enrol_qisat_external',
-        'methodname'  => 'enrol_login',
+        'methodname'  => 'create_user_enrol',
         'classpath'   => 'enrol/qisat/externallib.php',
         'component'   => 'enrol_qisat',
-        'description' => 'QiSat user login (and enrol)',
+        'description' => 'QiSat user create (and enrol)',
         'capabilities'=> 'enrol/qisat:enrol',
+        'type'        => 'write',
+    ),
+
+    'enrol_qisat_get_enrols' => array(
+        'classname'   => 'enrol_qisat_external',
+        'methodname'  => 'get_enrols',
+        'classpath'   => 'enrol/qisat/externallib.php',
+        'component'   => 'enrol_qisat',
+        'description' => 'QiSat user login (and get enrols)',
+        'capabilities'=> '',
         'type'        => 'write',
     ),
 

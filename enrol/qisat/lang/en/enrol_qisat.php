@@ -32,9 +32,14 @@ $string['qisatpluginnotinstalled'] = 'The "QiSat" plugin has not yet been instal
 $string['wsusercannotassign'] = 'You don\'t have the permission to assign this role ({$a->roleid}) to this user ({$a->userid}) in this course({$a->courseid}).';
 $string['wsnoinstance'] = 'QiSat enrolment plugin instance doesn\'t exist or is disabled for the course (id = {$a->courseid})';
 $string['wscannotenrol'] = 'Plugin instance cannot manually enrol a user in the course id = {$a->courseid}';
-
 $string['status'] = 'Enable QiSat enrolments';
 $string['status_help'] = 'This setting determines whether users can be enrolled manually, via a link in the course administration settings, by a user with appropriate permissions such as a teacher.';
 $string['defaultperiod'] = 'Default enrolment duration';
 $string['defaultperiod_help'] = 'Default length of time that the enrolment is valid, starting with the moment the user is enrolled. If disabled, the enrolment duration will be unlimited by default.';
+
+$string['status_blocked'] = 'Blocked Course';
+$string['scheduled_status'] = 'Scheduled Course';
+$string['status_released'] = 'Released for Access';
+$string['status_finalized'] = 'Finished Course';
+$string['closed_status'] = 'Deadline Ended';
 

@@ -45,7 +45,7 @@ class enrol_qisat_external extends external_api {
      * @return external_function_parameters
      * @since Moodle 2.2
      */
-    public static function enrol_login_parameters() {
+    public static function create_user_enrol_parameters() {
         return new external_function_parameters(array(
             'username' => new external_value(core_user::get_property_type('username'),
                 'Username policy is defined in Moodle security config.'),
@@ -142,7 +142,7 @@ class enrol_qisat_external extends external_api {
      * @return array 
      * @since Moodle 2.2
      */
-    public static function enrol_login($username, $password, $courseid, $start = null, $end = null, $user = null) {
+    public static function create_user_enrol($username, $password, $courseid, $start = null, $end = null, $user = null) {
         global $CFG, $DB;
 
         require_once($CFG->libdir.'/enrollib.php');
@@ -158,7 +158,7 @@ class enrol_qisat_external extends external_api {
         if(!is_null($user))
             $parameters['user'] = $user;
 
-        $params = self::validate_parameters(self::enrol_login_parameters(), $parameters);
+        $params = self::validate_parameters(self::create_user_enrol_parameters(), $parameters);
 
         if (array_key_exists('user', $params) && !$DB->record_exists('user', array('username' => $params['username'], 'mnethostid' => $CFG->mnet_localhost_id))) {
             $params['user']['username'] = $params['username'];
@@ -167,32 +167,123 @@ class enrol_qisat_external extends external_api {
         }
 
         $return = array('status' => false);
-        // Alterar forma de autenticação
-        if($user = authenticate_user_login($params['username'], $params['password'], false)){
-            $enrol = enrol_get_plugin('qisat');
-            if (empty($enrol)) {
-                throw new moodle_exception('qisatpluginnotinstalled', 'enrol_qisat');
+        
+        $enrol = enrol_get_plugin('qisat');
+        if (empty($enrol)) {
+            throw new moodle_exception('qisatpluginnotinstalled', 'enrol_qisat');
+        }
+
+        $user   = $DB->get_record('user', array('username'=>$params['username']));
+        $course = $DB->get_record('course', array('id'=>$params['courseid']));
+        $context = context_course::instance($params['courseid']);
+        
+        $return = array('nome'   => $user->firstname.' '.$user->lastname,
+                        'sigla'  => $course->shortname,
+                        'status' => $enrol->get_status_curso($params['courseid'], $user->id), 
+                        'imagem' => $enrol->get_course_image($params['courseid'])->out());
+
+        if(is_enrolled($context, $user->id, '', true)) 
+            return $return;
+        
+        $enrol->enrol_user_qisat(array(
+            'userid'    => $user->id, 
+            'courseid'  => $params['courseid'], 
+            'timestart' => $start_time, 
+            'timeend'   => $end_time
+        ));
+        $enrol->groups_qisat_add_member($params['courseid'], $user->id, $_REQUEST['wstoken']);
+
+        return $return;
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     * @since Moodle 2.2
+     */
+    public static function create_user_enrol_returns() {
+        return new external_single_structure(
+            array(
+                'nome'   => new external_value(PARAM_RAW, 'Nome completo do aluno', VALUE_OPTIONAL),
+                'sigla'  => new external_value(PARAM_RAW, 'Nome curto do curso', VALUE_OPTIONAL),
+                'status' => new external_value(PARAM_RAW, 'Status da matricula do aluno'),
+                'imagem' => new external_value(PARAM_RAW, 'Imagem base do curso', VALUE_OPTIONAL)
+            )
+        );
+    }
+
+
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     * @since Moodle 2.2
+     */
+    public static function get_enrols_parameters() {
+        return new external_function_parameters(array(
+            'username' => new external_value(core_user::get_property_type('username'),
+                'Username policy is defined in Moodle security config.'),
+            'password' => new external_value(core_user::get_property_type('password'),
+                'Plain text password consisting of any characters'),
+            'courseid' => new external_value(PARAM_INT, 'Id of the course', VALUE_OPTIONAL)
+        ));
+    }
+
+    /**
+     * Returns the enrollment of the informed student
+     *
+     * @throws invalid_parameter_exception
+     * @param string $username 
+     * @param string $password 
+     * @param int $courseid 
+     * @return array 
+     * @since Moodle 2.2
+     */
+    public static function get_enrols($username, $password, $courseid = null) {
+        global $CFG, $DB;
+
+        $parameters = array(
+            'username' => $username,
+            'password' => $password,
+            'courseid' => $courseid,
+        );
+
+        $params = self::validate_parameters(self::get_enrols_parameters(), $parameters);
+
+        $enrol = enrol_get_plugin('qisat');
+        if (empty($enrol)) {
+            throw new moodle_exception('qisatpluginnotinstalled', 'enrol_qisat');
+        }
+
+        
+        $user = authenticate_user_login($params['username'], $params['password'], false);
+        $service = $DB->get_record('external_services', array('shortname' => 'moodle_mobile_app', 'enabled' => 1));
+        if (empty($service)) {
+            throw new moodle_exception('servicenotavailable', 'webservice');
+        }
+        //\core\session\manager::set_user($user);
+        $token = external_generate_token_for_current_user($service);
+        
+        $return = array('nome'    => $user->firstname.' '.$user->lastname,
+                        'courses' => array());
+
+        $course_params = null;
+        if(!is_null($params['courseid']))
+            $course_params = array('id' => $params['courseid']);
+
+        $courses = $DB->get_records('course', $course_params);
+        foreach ($courses as $course) {
+            $context = context_course::instance($course->id);
+            if($course->id > 1 && is_enrolled($context, $user->id, '', true)){
+                $image = $enrol->get_course_image($course->id);
+                $return['courses'][$course->id] = array(
+                    'sigla'  => $course->shortname,
+                    'status' => $enrol->get_status_curso($course->id, $user->id), 
+                    'imagem' => $image ? $image->out() : null,
+                    'url'    => $CFG->wwwroot.'/course/view.php?id='.$course->id.'&token='.$token->token,
+                );
             }
-
-            $course = $DB->get_record('course', array('id'=>$params['courseid']));
-            $context = context_course::instance($params['courseid']);
-
-            $return = array('status' => is_enrolled($context, $user->id, '', true),
-                            'imagem' => $enrol->get_course_image($params['courseid'])->out(),
-                            'nome'   => $user->firstname.' '.$user->lastname,
-                            'sigla'  => $course->shortname,
-                            'url'    => $CFG->wwwroot.'/course/view.php?id='.$params['courseid']);
-
-            if(is_enrolled($context, $user->id, '', true)) 
-                return $return;
-            
-            $enrol->enrol_user_qisat(array(
-                'userid'    => $user->id, 
-                'courseid'  => $params['courseid'], 
-                'timestart' => $start_time, 
-                'timeend'   => $end_time
-            ));
-            $enrol->groups_qisat_add_member($params['courseid'], $user->id, $_REQUEST['wstoken']);
         }
 
         return $return;
@@ -204,14 +295,18 @@ class enrol_qisat_external extends external_api {
      * @return external_description
      * @since Moodle 2.2
      */
-    public static function enrol_login_returns() {
+    public static function get_enrols_returns() {
         return new external_single_structure(
             array(
-                'status' => new external_value(PARAM_RAW, 'Url de acesso'),
-                'nome'   => new external_value(PARAM_RAW, 'Url de acesso', VALUE_OPTIONAL),
-                'sigla'  => new external_value(PARAM_RAW, 'Url de acesso', VALUE_OPTIONAL),
-                'url'    => new external_value(PARAM_RAW, 'Url de acesso', VALUE_OPTIONAL),
-                'imagem' => new external_value(PARAM_RAW, 'Url de acesso', VALUE_OPTIONAL)
+                'nome'    => new external_value(PARAM_RAW, 'Nome completo do aluno'),
+                'courses' => new external_multiple_structure(
+                    new external_single_structure(array(
+                        'sigla'  => new external_value(PARAM_RAW, 'Nome curto do curso'),
+                        'status' => new external_value(PARAM_RAW, 'Status da matricula do aluno'),
+                        'imagem' => new external_value(PARAM_RAW, 'Imagem base do curso'),
+                        'url'    => new external_value(PARAM_RAW, 'Url de acesso'),
+                    ))
+                )
             )
         );
     }
