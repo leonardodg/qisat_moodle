@@ -4523,7 +4523,9 @@ function authenticate_user_login($username, $password, $ignorelockout=false, &$f
 
             // If the existing hash is using an out-of-date algorithm (or the legacy md5 algorithm), then we should update to
             // the current hash algorithm while we have access to the user's password.
-            update_internal_user_password($user, $password);
+            if($authplugin->is_internal()){
+                update_internal_user_password($user, $password);
+            }
 
             if ($authplugin->is_synchronised_with_external()) {
                 // Update user record from external DB.

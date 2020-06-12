@@ -164,10 +164,30 @@ class auth_plugin_qisat extends auth_plugin_base {
         return $DB->update_record('user', $user, false);
     }
 
-
-    function post_forgot_password_requests($dataform = null)
+    public function get_password_change_info(stdClass $user) : array
     {
-        echo 'post_forgot_password_requests';
-        die;
+        $site = get_site();
+        $systemcontext = context_system::instance();
+
+        $data = new stdClass();
+        $data->firstname = $user->firstname;
+        $data->lastname  = $user->lastname;
+        $data->username  = $user->username;
+        $data->sitename  = format_string($site->fullname);
+        $data->admin     = generate_email_signoff();
+        $data->password  = $this->aes->decrypt(base64_decode($user->password));
+
+        if (has_capability('moodle/user:changeownpassword', $systemcontext, $user->id)) {
+            $subject = get_string('emailpasswordchangeinfosubject', 'auth_qisat', format_string($site->fullname));
+            $message = get_string('emailpasswordchangeinfo', 'auth_qisat', $data);
+        } else {
+            $subject = get_string('emailpasswordchangeinfosubject', 'auth_qisat', format_string($site->fullname));
+            $message = get_string('emailpasswordchangeinfofail', 'auth_qisat', $data);
+        }
+
+        return [
+            'subject' => $subject,
+            'message' => $message
+        ];
     }
 }
