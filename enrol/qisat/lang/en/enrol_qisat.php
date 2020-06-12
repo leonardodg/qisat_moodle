@@ -43,3 +43,5 @@ $string['status_released'] = 'Released for Access';
 $string['status_finalized'] = 'Finished Course';
 $string['closed_status'] = 'Deadline Ended';
 
+$string['unregistereduser'] = 'User not registered';
+

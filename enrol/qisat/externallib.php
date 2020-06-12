@@ -49,8 +49,6 @@ class enrol_qisat_external extends external_api {
         return new external_function_parameters(array(
             'username' => new external_value(core_user::get_property_type('username'),
                 'Username policy is defined in Moodle security config.'),
-            'password' => new external_value(core_user::get_property_type('password'),
-                'Plain text password consisting of any characters'),
             'courseid' => new external_value(PARAM_INT, 'Id of the course'),
             'start' => new external_value(PARAM_INT, 'Initial course period', VALUE_DEFAULT, 0),
             'end' => new external_value(PARAM_INT, 'Final course period', VALUE_DEFAULT, 0),
@@ -61,6 +59,8 @@ class enrol_qisat_external extends external_api {
                 'email' => new external_value(core_user::get_property_type('email'), 'A valid and unique email address'),
 
                 // General options
+                'password' => new external_value(core_user::get_property_type('password'),
+                    'Plain text password consisting of any characters', VALUE_OPTIONAL),
                 'createpassword' => new external_value(PARAM_BOOL, 
                     'True if password should be created and mailed to user.', VALUE_OPTIONAL),
                 'auth' => new external_value(core_user::get_property_type('auth'), 'Auth plugins include manual, ldap, etc',
@@ -142,7 +142,7 @@ class enrol_qisat_external extends external_api {
      * @return array 
      * @since Moodle 2.2
      */
-    public static function create_user_enrol($username, $password, $courseid, $start = null, $end = null, $user = null) {
+    public static function create_user_enrol($username, $courseid, $start = null, $end = null, $user = null) {
         global $CFG, $DB;
 
         require_once($CFG->libdir.'/enrollib.php');
@@ -150,7 +150,6 @@ class enrol_qisat_external extends external_api {
 
         $parameters = array(
             'username' => $username,
-            'password' => $password,
             'courseid' => $courseid,
             'start'    => $start,
             'end'      => $end
@@ -162,7 +161,6 @@ class enrol_qisat_external extends external_api {
 
         if (array_key_exists('user', $params) && !$DB->record_exists('user', array('username' => $params['username'], 'mnethostid' => $CFG->mnet_localhost_id))) {
             $params['user']['username'] = $params['username'];
-            $params['user']['password'] = $params['password'];
             core_user_external::create_users(array($params['user']));
         }
 
@@ -173,14 +171,17 @@ class enrol_qisat_external extends external_api {
             throw new moodle_exception('qisatpluginnotinstalled', 'enrol_qisat');
         }
 
-        $user   = $DB->get_record('user', array('username'=>$params['username']));
-        $course = $DB->get_record('course', array('id'=>$params['courseid']));
+        $user = $DB->get_record('user', array('username'=>$params['username']));
+        if (empty($user)) {
+            throw new moodle_exception('unregistereduser', 'enrol_qisat');
+        }
+
+        $course  = $DB->get_record('course', array('id'=>$params['courseid']));
         $context = context_course::instance($params['courseid']);
         
         $return = array('nome'   => $user->firstname.' '.$user->lastname,
                         'sigla'  => $course->shortname,
-                        'status' => $enrol->get_status_curso($params['courseid'], $user->id), 
-                        'imagem' => $enrol->get_course_image($params['courseid'])->out());
+                        'status' => $enrol->get_status_curso($params['courseid'], $user->id));
 
         if(is_enrolled($context, $user->id, '', true)) 
             return $return;
@@ -192,6 +193,9 @@ class enrol_qisat_external extends external_api {
             'timeend'   => $end_time
         ));
         $enrol->groups_qisat_add_member($params['courseid'], $user->id, $_REQUEST['wstoken']);
+
+        // require_once($CFG->libdir.'/moodlelib.php');
+        // purge_caches();
 
         return $return;
     }
@@ -207,8 +211,7 @@ class enrol_qisat_external extends external_api {
             array(
                 'nome'   => new external_value(PARAM_RAW, 'Nome completo do aluno', VALUE_OPTIONAL),
                 'sigla'  => new external_value(PARAM_RAW, 'Nome curto do curso', VALUE_OPTIONAL),
-                'status' => new external_value(PARAM_RAW, 'Status da matricula do aluno'),
-                'imagem' => new external_value(PARAM_RAW, 'Imagem base do curso', VALUE_OPTIONAL)
+                'status' => new external_value(PARAM_RAW, 'Status da matricula do aluno')
             )
         );
     }
