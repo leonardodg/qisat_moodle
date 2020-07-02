@@ -30,6 +30,13 @@ $functions = array(
                 'description' => 'Teste WebService QiSat',
                 'type'        => 'read',
                 'testclientpath'=> 'local/wsqisat/testclient_from.php',
+        ),
+        'local_wsqisat_get_autologin_key' => array(
+                'classname'   => 'local_wsqisat_external',
+                'methodname'  => 'get_autologin_key',
+                'classpath'   => 'local/wsqisat/externallib.php',
+                'description' => 'Auto-Login WebService QiSat',
+                'type'        => 'read',
         )
 );
 
