@@ -97,28 +97,16 @@ class local_wsqisat_external extends external_api {
             throw new moodle_exception('enablewsdescription', 'webservice');
         }
 
-        if (!is_https()) {
-            throw new moodle_exception('httpsrequired', 'local_wsqisat');
-        }
+       if (!is_https()) {
+           throw new moodle_exception('httpsrequired', 'local_wsqisat');
+       }
 
         if (has_capability('moodle/site:config', context_system::instance(), $USER->id) or is_siteadmin($USER->id)) {
             throw new moodle_exception('autologinnotallowedtoadmins', 'local_wsqisat');
         }
         // end function tool_mobile
 
-        if (isset($_GET['privatetoken']) or empty($privatetoken)) {
-            throw new moodle_exception('invalidprivatetoken', 'local_wsqisat');
-        }
-
-        // Check the request counter, we must limit the number of times the privatetoken is sent.
-        // Between each request 6 minutes are required.
-        $last = get_user_preferences('local_wsqisat_autologin_request_last', 0, $USER);
-        // Check if we must reset the count.
-        $timenow = time();
-        if ($timenow - $last < 6 * MINSECS) {
-            throw new moodle_exception('autologinkeygenerationlockout', 'local_wsqisat');
-        }
-        set_user_preference('local_wsqisat_autologin_request_last', $timenow, $USER);
+        set_user_preference('local_wsqisat_autologin_request_last', time(), $USER);
 
         // We are expecting a privatetoken linked to the current token being used.
         // This WS is only valid when using mobile services via REST (this is intended).
