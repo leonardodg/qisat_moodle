@@ -43,8 +43,9 @@ $functions = array(
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
 $services = array(
         'QiSatWS' => array(
-                'functions' => array ('local_wsqisat_test'),
+                'functions' => array ('local_wsqisat_test', 'local_wsqisat_get_autologin_key'),
                 'restrictedusers' => 0,
                 'enabled'=>1,
+                'shortname' => 'qisatws',
         )
 );
