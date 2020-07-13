@@ -1,3 +1,6 @@
+RewriteEngine On
+RewriteRule ^.well-known/acme-challenge/(.*)$ https://www.qisat.com.br/.well-known/acme-challenge/$1 [R=301,L]
+
 <ifModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/xml text/x-js text/javascript text/css application/javascript
 </ifmodule>
