@@ -164,6 +164,10 @@ class enrol_qisat_external extends external_api {
 
         if (array_key_exists('user', $params) && !$DB->record_exists('user', array('username' => $params['username'], 'mnethostid' => $CFG->mnet_localhost_id))) {
             $password = $params['user']['password'];
+            $errmsg = '';
+            if (!$params['user']['createpassword'] && !check_password_policy($password, $errmsg)) {
+                throw new moodle_exception('Password is invalid: '.$password);
+            }
 
             $params['user']['username'] = $params['username'];
             core_user_external::create_users(array($params['user']));
