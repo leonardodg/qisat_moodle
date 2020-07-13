@@ -163,7 +163,7 @@ class enrol_qisat_external extends external_api {
         $params = self::validate_parameters(self::create_user_enrol_parameters(), $parameters);
 
         if (array_key_exists('user', $params) && !$DB->record_exists('user', array('username' => $params['username'], 'mnethostid' => $CFG->mnet_localhost_id))) {
-            $password = $params['password'];
+            $password = $params['user']['password'];
 
             $params['user']['username'] = $params['username'];
             core_user_external::create_users(array($params['user']));
@@ -172,7 +172,7 @@ class enrol_qisat_external extends external_api {
             if (empty($user)) {
                 throw new moodle_exception('unregistereduser', 'enrol_qisat');
             }
-            if(is_null($password) || $params['createpassword'])
+            if(is_null($password) || $params['user']['createpassword'])
                 $password = generate_password();
     
             $auth_plugin_qisat = new auth_plugin_qisat();
