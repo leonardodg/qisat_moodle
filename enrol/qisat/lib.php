@@ -339,5 +339,22 @@ class enrol_qisat_plugin extends enrol_plugin {
         return get_string('status_released', 'enrol_qisat');
     }
 
+    /**
+     * Returns a list of course id's
+     * 
+     * @param int category id
+     * @return String 
+     */
+    public function get_coursesid_by_category($category){
+        global $DB;
+
+        $sql = "SELECT co.id FROM {course} co 
+                INNER JOIN {course_categories} cc ON co.category = cc.id 
+                WHERE cc.id = :category";
+        $courses = $DB->get_fieldset_sql($sql, array('category' => $category));
+
+        return $courses;
+    }
+
 }
 
