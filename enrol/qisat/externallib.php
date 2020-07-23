@@ -51,7 +51,8 @@ class enrol_qisat_external extends external_api {
         return new external_function_parameters(array(
             'username' => new external_value(core_user::get_property_type('username'),
                 'Username policy is defined in Moodle security config.'),
-            'courseid' => new external_value(PARAM_INT, 'Id of the course'),
+            'courseid' => new external_value(PARAM_INT, 'Id of the course', VALUE_DEFAULT, NULL),
+            'categoryid' => new external_value(PARAM_INT, 'Id of the category', VALUE_DEFAULT, NULL),
             'start' => new external_value(PARAM_INT, 'Initial course period', VALUE_DEFAULT, 0),
             'end' => new external_value(PARAM_INT, 'Final course period', VALUE_DEFAULT, 0),
             // User
@@ -66,7 +67,7 @@ class enrol_qisat_external extends external_api {
                 'createpassword' => new external_value(PARAM_BOOL, 
                     'True if password should be created and mailed to user.', VALUE_OPTIONAL),
                 'auth' => new external_value(core_user::get_property_type('auth'), 'Auth plugins include manual, ldap, etc',
-                    VALUE_DEFAULT, 'manual', core_user::get_property_null('auth')),
+                    VALUE_DEFAULT, 'qisat', core_user::get_property_null('auth')),
 
                 'maildisplay' => new external_value(core_user::get_property_type('maildisplay'), 'Email display', VALUE_OPTIONAL),
                 'city' => new external_value(core_user::get_property_type('city'), 'Home city of the user', VALUE_OPTIONAL),
@@ -136,15 +137,15 @@ class enrol_qisat_external extends external_api {
      *
      * @throws invalid_parameter_exception
      * @param string $username 
-     * @param string $password 
      * @param int $courseid 
+     * @param int $categoryid 
      * @param int $start 
      * @param int $end 
      * @param array $user 
      * @return array 
      * @since Moodle 2.2
      */
-    public static function create_user_enrol($username, $courseid, $start = null, $end = null, $user = null) {
+    public static function create_user_enrol($username, $courseid = null, $categoryid = null, $start = null, $end = null, $user = null) {
         global $CFG, $DB;
 
         require_once($CFG->dirroot.'/auth/qisat/auth.php');
@@ -152,16 +153,21 @@ class enrol_qisat_external extends external_api {
         require_once($CFG->dirroot.'/user/externallib.php');
 
         $parameters = array(
-            'username' => $username,
-            'courseid' => $courseid,
-            'start'    => $start,
-            'end'      => $end
+            'username'   => $username,
+            'courseid'   => $courseid,
+            'categoryid' => $categoryid,
+            'start'      => $start,
+            'end'        => $end
         );
         if(!is_null($user))
             $parameters['user'] = $user;
 
         $params = self::validate_parameters(self::create_user_enrol_parameters(), $parameters);
-
+        
+        if(is_null($courseid) && is_null($categoryid)){
+            throw new moodle_exception('Course and category invalid');
+        }
+        
         if (array_key_exists('user', $params) && !$DB->record_exists('user', array('username' => $params['username'], 'mnethostid' => $CFG->mnet_localhost_id))) {
             $password = $params['user']['password'];
             $errmsg = '';
@@ -197,9 +203,6 @@ class enrol_qisat_external extends external_api {
             }
         }
 
-        $course  = $DB->get_record('course', array('id'=>$params['courseid']));
-        $context = context_course::instance($params['courseid']);
-
         if(!isset($password)){
             $config = get_config(auth_plugin_qisat::COMPONENT_NAME);
             $legacyconfig = get_config(auth_plugin_qisat::LEGACY_COMPONENT_NAME);
@@ -214,19 +217,27 @@ class enrol_qisat_external extends external_api {
                         'username' => $user->username,
                         'password' => $password);
                         
+        if(!is_null($params['categoryid'])){
+            $cursos = $enrol->get_coursesid_by_category($categoryid);
+            $params['courseid'] = reset($cursos);
+        } else {
+            $cursos = [$courseid];
+        }
+
+        $context = context_course::instance($params['courseid']);
         if(is_enrolled($context, $user->id, '', true)) 
             return $return;
         
-        $enrol->enrol_user_qisat(array(
-            'userid'    => $user->id, 
-            'courseid'  => $params['courseid'], 
-            'timestart' => $start_time, 
-            'timeend'   => $end_time 
-        ));
-        $enrol->groups_qisat_add_member($params['courseid'], $user->id, $_REQUEST['wstoken']);
+        foreach ($cursos as $curso) {
+            $enrol->enrol_user_qisat(array(
+                'userid'    => $user->id, 
+                'courseid'  => $curso, 
+                'timestart' => $start_time, 
+                'timeend'   => $end_time 
+            ));
+        }
 
-        // require_once($CFG->libdir.'/moodlelib.php');
-        // purge_caches();
+        $enrol->groups_qisat_add_member($params['courseid'], $user->id, $_REQUEST['wstoken']);
 
         return $return;
     }
