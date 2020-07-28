@@ -355,6 +355,228 @@ class enrol_qisat_plugin extends enrol_plugin {
 
         return $courses;
     }
+    
+    public function send_expiry_notifications($trace){
+        global $DB, $CFG;
 
+        $enablenotify = $this->get_config('enablenotifyexpiry');
+
+        if(!$enablenotify){
+            $trace->finished();
+            return;
+        }
+
+        $name = $this->get_name();
+        if (!enrol_is_enabled($name)) {
+            $trace->finished();
+            return;
+        }
+
+        // Unfortunately this may take a long time, it should not be interrupted,
+        // otherwise users get duplicate notification.
+        core_php_time_limit::raise();
+        raise_memory_limit(MEMORY_HUGE);
+
+        $expirynotifylast = $this->get_config('expirynotifylast', 0);
+        $expirynotifyhour = $this->get_config('expirynotifyhour');
+        $expirythreshold = $this->get_config('expirythreshold');
+
+        if (is_null($expirynotifyhour)) {
+            debugging("send_expiry_notifications() in $name enrolment plugin needs expirynotifyhour setting");
+            $trace->finished();
+            return;
+        }
+
+        if (!($trace instanceof progress_trace)) {
+            $trace = $trace ? new text_progress_trace() : new null_progress_trace();
+            debugging('enrol_plugin::send_expiry_notifications() now expects progress_trace instance as parameter!', DEBUG_DEVELOPER);
+        }
+
+        $timenow = time();
+        $notifytime = usergetmidnight($timenow, $CFG->timezone) + ($expirynotifyhour * 3600);
+
+        if ($expirynotifylast > $notifytime) {
+            $trace->output($name.' enrolment expiry notifications were already sent today at '.userdate($expirynotifylast, '', $CFG->timezone).'.');
+            $trace->finished();
+            return;
+
+        } else if ($timenow < $notifytime) {
+            $trace->output($name.' enrolment expiry notifications will be sent at '.userdate($notifytime, '', $CFG->timezone).'.');
+            $trace->finished();
+            return;
+        }
+
+        $trace->output('Processing '.$name.' enrolment expiration notifications...');
+
+        // Notify users responsible for enrolment once every day.
+        $sql = "SELECT ue.*, e.courseid, c.fullname
+                  FROM {user_enrolments} ue
+                  JOIN {enrol} e ON (e.id = ue.enrolid AND e.enrol = :name AND e.status = :enabled)
+                  JOIN {course} c ON (c.id = e.courseid)
+                  JOIN {user} u ON (u.id = ue.userid AND u.deleted = 0 AND u.suspended = 0)
+                 WHERE ue.status = :active AND ue.timeend > 0 AND ue.timeend > UNIX_TIMESTAMP(NOW()) 
+                       AND TIMESTAMPDIFF(SECOND, NOW(),  FROM_UNIXTIME(ue.timeend)) <= :expirythreshold
+
+              ORDER BY ue.enrolid ASC, u.lastname ASC, u.firstname ASC, u.id ASC";
+        $params = array('enabled'=>ENROL_INSTANCE_ENABLED, 'active'=>ENROL_USER_ACTIVE, 'expirythreshold'=> $expirythreshold, 'name'=>$name);
+
+        $rs = $DB->get_recordset_sql($sql, $params);
+        foreach($rs as $ue) {
+            $user = $DB->get_record('user', array('id'=>$ue->userid));
+            $this->notify_expiry_enrolled($user, $ue, $trace);
+        }
+        $rs->close();
+        $trace->output('...notification processing finished.');
+        $trace->finished();
+
+        $this->set_config('expirynotifylast', $timenow);
+    }
+
+    /**
+     * Send start course notifications.
+     *
+     * Plugin that wants to have expiry notification MUST implement following:
+     * - expirynotifyhour plugin setting,
+     * - notification strings (expirymessageenrollersubject, expirymessageenrollerbody,
+     *   expirymessageenrolledsubject and expirymessageenrolledbody),
+     * - expiry_notification provider in db/messages.php,
+     * - upgrade code that sets default thresholds for existing courses (should be 1 day),
+     * - something that calls this method, such as cron.
+     *
+     * @param progress_trace $trace (accepts bool for backwards compatibility only)
+     */
+    public function send_start_notifications($trace) {
+        global $DB, $CFG;
+
+        $name = $this->get_name();
+        $enablenotify = $this->get_config('enablenotifyexpiry');
+
+        if(!$enablenotify){
+            $trace->finished();
+            return;
+        }
+
+        if (!enrol_is_enabled($name)) {
+            $trace->finished();
+            return;
+        }
+
+        // Unfortunately this may take a long time, it should not be interrupted,
+        // otherwise users get duplicate notification.
+        core_php_time_limit::raise();
+        raise_memory_limit(MEMORY_HUGE);
+
+        $runnotifylast = $this->get_config('startnotifylast', 0);
+        $startynotifyhour = $this->get_config('startnotifyhour');
+        $startthreshold = $this->get_config('startthreshold');
+
+        if (is_null($startynotifyhour)) {
+            debugging("send_start_notifications() in $name enrolment plugin needs startnotifyhour setting");
+            $trace->finished();
+            return;
+        }
+
+        if (!($trace instanceof progress_trace)) {
+            $trace = $trace ? new text_progress_trace() : new null_progress_trace();
+            debugging('enrol_plugin::send_start_notifications() now expects progress_trace instance as parameter!', DEBUG_DEVELOPER);
+        }
+
+        $timenow = time();
+        $time = usergetmidnight($timenow, $CFG->timezone);
+        $timerun = $time + ($startynotifyhour * 3600);
+
+        // buscar matriculas já iniciadas ate este momento
+        $timestart = $timenow - $startthreshold;
+
+        if ($runnotifylast > $timerun) {
+            $trace->output($name.' enrolment start course notifications were already sent today at '.userdate($runnotifylast, '', $CFG->timezone).'.');
+            $trace->finished();
+            return;
+        } else if ($timenow < $timerun) {
+            $trace->output($name.' enrolment start course notifications will be sent at '.userdate($timerun, '', $CFG->timezone).'.');
+            $trace->finished();
+            return;
+        }
+
+        $trace->output('Processing '.$name.' enrolment start course notifications...');
+
+        // Notify users responsible for enrolment once every day.
+        $sql = "SELECT ue.*, e.courseid, c.fullname
+                  FROM {user_enrolments} ue
+                  JOIN {enrol} e ON (e.id = ue.enrolid AND e.enrol = :name AND e.status = :enabled)
+                  JOIN {course} c ON (c.id = e.courseid)
+                  JOIN {user} u ON (u.id = ue.userid AND u.deleted = 0 AND u.suspended = 0)
+                 WHERE ue.status = :active AND ue.timestart >= :data_notify AND ue.timestart < :now
+              ORDER BY ue.enrolid ASC, u.lastname ASC, u.firstname ASC, u.id ASC";
+        $params = array('enabled'=>ENROL_INSTANCE_ENABLED, 'active'=>ENROL_USER_ACTIVE, 'data_notify'=> $timestart, 'now' => $timenow,  'name'=>$name);
+
+        $rs = $DB->get_recordset_sql($sql, $params);
+
+        $trace->output('sql '. print_r($params));
+
+        foreach($rs as $ue) {
+            $user = $DB->get_record('user', array('id'=>$ue->userid));
+            $trace->output('userid: '. $ue->userid .' timestart: '.userdate($ue->timestart, '', $CFG->timezone)) ;
+            $this->notify_start_enrolled($user, $ue, $trace);
+        }
+        $rs->close();
+
+        $trace->output('...notification processing finished.');
+        $trace->finished();
+
+        $this->set_config('startnotifylast', $timenow);
+    }
+
+    /**
+     * Notify user about incoming start course of their enrolment,
+     * it is called only if notification of enrolled users (aka students) is enabled in course.
+     *
+     * This is executed only once for each expiring enrolment right
+     * at the start of the start threshold.
+     *
+     * @param stdClass $user
+     * @param stdClass $ue
+     * @param progress_trace $trace
+     */
+    protected function notify_start_enrolled($user, $ue, progress_trace $trace) {
+        global $CFG;
+
+        $oldforcelang = force_current_language($user->lang);
+
+        $enroller = $this->get_enroller($ue->enrolid);
+        $context = context_course::instance($ue->courseid);
+
+        $a = new stdClass();
+        $a->course   = format_string($ue->fullname, true, array('context'=>$context));
+        $a->user     = fullname($user, true);
+        $a->timestart  = userdate($ue->timestart, '', $user->timezone);
+        $a->enroller = fullname($enroller, has_capability('moodle/site:viewfullnames', $context, $user));
+
+        $subject = get_string('startmessageenrolledsubject', 'enrol_qisat', $a);
+        $body = get_string('startmessageenrolledbody', 'enrol_qisat', $a);
+
+        $message = new \core\message\message();
+        $message->courseid          = $ue->courseid;
+        $message->notification      = 1;
+        $message->component         = 'enrol_qisat';
+        $message->name              = 'start_notification';
+        $message->userfrom          = $enroller;
+        $message->userto            = $user;
+        $message->subject           = $subject;
+        $message->fullmessage       = $body;
+        $message->fullmessageformat = FORMAT_MARKDOWN;
+        $message->fullmessagehtml   = markdown_to_html($body);
+        $message->smallmessage      = $subject;
+        $message->contexturlname    = $a->course;
+        $message->contexturl        = (string)new moodle_url('/course/view.php', array('id'=>$ue->courseid));
+
+        if (message_send($message)) {
+            $trace->output("notifying user $ue->userid that enrolment in course $ue->courseid start on ".userdate($ue->timestart, '', $CFG->timezone), 1);
+        } else {
+            $trace->output("error notifying user $ue->userid that enrolment in course $ue->courseid start on ".userdate($ue->timestart, '', $CFG->timezone), 1);
+        }
+
+        force_current_language($oldforcelang);
+    }
 }
 

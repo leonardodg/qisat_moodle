@@ -45,3 +45,22 @@ $string['closed_status'] = 'Deadline Ended';
 
 $string['unregistereduser'] = 'User not registered';
 
+$string['expirynotifyhour'] = 'Hour to send enrolment expiry notifications';
+$string['startnotifyhour'] = 'Hour to send enrolment start course notifications';
+$string['expirythreshold'] = 'Limite de notificação curso expirando';
+$string['expirythreshold_help'] = 'Quanto tempo antes do vencimento da inscrição os usuários devem ser notificados?';
+$string['startthreshold'] = 'Limite de notificação curso iniciado';
+$string['startthreshold_help'] = 'Quanto tempo antes do inicio da inscrição os usuários devem ser notificados?';
+$string['sendexpirynotificationstask'] = "QiSat Enrolment send expiry notifications task";
+$string['sendstartnotificationstask'] = "QiSat Enrolment send start course notifications task";
+$string['enablenotifyexpiry'] = 'Enable/Disable send expiry notifications task ';
+$string['enablenotifystart'] = 'Enable/Disable send start course notifications task';
+$string['expirymessageenrolledsubject'] = 'Enrolment expiry notification';
+$string['expirymessageenrolledbody'] = 'Dear {$a->user},
+
+This is a notification that your enrolment in the course \'{$a->course}\' is due to expire on {$a->timeend}.';
+
+$string['startmessageenrolledsubject'] = 'Enrolment Start Course notification';
+$string['startmessageenrolledbody'] = 'Dear {$a->user},
+
+This is a notification that your enrolment in the course \'{$a->course}\' is started on {$a->timestart}.';
