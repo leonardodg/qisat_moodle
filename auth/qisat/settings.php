@@ -10,6 +10,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once('locallib.php');
+require_once('settingslib.php');
 
 if ($ADMIN->fulltree) {
 
@@ -18,7 +19,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('auth_qisat/pluginname', '',
             new lang_string('auth_qisatdescription', 'auth_qisat')));
 
-    $configaes = new admin_setting_configtext('auth_qisat/qisat_aes_key', get_string('aes_key', 'auth_qisat'),
+    $configaes = new admin_setting_configtext_key_aes('auth_qisat/qisat_aes_key', get_string('aes_key', 'auth_qisat'),
                        get_string('aes_key', 'auth_qisat'), '', PARAM_TEXT);
     
     $configaes->set_updatedcallback(function () use ($authplugin){
