@@ -188,18 +188,24 @@ class enrol_qisat_plugin extends enrol_plugin {
         
         // Finally proceed the enrolment.
         $enrolment['roleid'] = $instance->roleid;
-        $enrolment['timestart'] = !empty($enrolment['timestart']) ? $enrolment['timestart'] : strtotime('today midnight');
         $enrolment['status'] = (isset($enrolment['suspend']) && !empty($enrolment['suspend'])) ?
             ENROL_USER_SUSPENDED : ENROL_USER_ACTIVE;
 
-        if(!empty($enrolment['timeend'])) {
-            $enrolment['timeend'] = $enrolment['timeend'];
-        } else if (!empty($enrolment['timestart']) && !empty($instance->enrolperiod)) {
-            $enrolment['timeend'] = $enrolment['timestart'] + $instance->enrolperiod + 86399;
-        } else {
-            $enrolment['timeend'] = 0;
+        $idnumber = $enrolment['idnumber'];
+        unset($enrolment['idnumber']);
+
+        if(!$group = groups_get_group_by_idnumber($enrolment['courseid'], $idnumber)){
+            throw new moodle_exception('qisatpluginnotinstalled', 'enrol_qisat');
         }
 
+        $enrolment['timestart'] = $group->timecreated;
+        if(!empty($instance->enrolperiod)){
+            $enrolment['timeend'] = $enrolment['timestart'] + $instance->enrolperiod + 86399;
+        } else {
+            $sql = "SELECT enddate FROM {course} WHERE id = :id";
+            $enrolment['timeend'] = $DB->get_field_sql($sql, array('id' => $enrolment['courseid']));
+        }
+        
         $enrol->enrol_user($instance, $enrolment['userid'], $enrolment['roleid'],
                 $enrolment['timestart'], $enrolment['timeend'], $enrolment['status']);
 
@@ -214,9 +220,10 @@ class enrol_qisat_plugin extends enrol_plugin {
      * @param string Service / group access token
      * @return void
      */
-    function groups_qisat_add_member($courseid, $userid, $token){
+    function groups_qisat_add_member($courseid, $userid, $groupid){
         global $CFG, $DB;
         require_once($CFG->dirroot . '/group/lib.php');
+        require_once($CFG->libdir . '/grouplib.php');
 
         $enrol = enrol_get_plugin('qisat');
         if (empty($enrol)) {
@@ -230,46 +237,11 @@ class enrol_qisat_plugin extends enrol_plugin {
         // Check that the user has the permission to qisat enrol.
         require_capability('enrol/qisat:enrol', $context);
 
-        if(!$group = $enrol->get_group($courseid, $token)){
-            $sql = 'SELECT es.name FROM {external_services} es 
-                        INNER JOIN {external_tokens} et ON et.externalserviceid = es.id 
-                        WHERE token = :token';
-            $services = $DB->get_record_sql($sql, array('token' => $token));
-            $turma = 'Turma '.$services->name.' '.date("Y");
-
-            $course = $DB->get_record('course', array('id'=>$courseid));
-            $data = (object)array(
-                'courseid'     => $courseid,
-                'name'         => $turma,
-                'description'  => $turma . ' - ' . $course->fullname,
-                'enrolmentkey' => $token
-            );
-
-            $group = new stdClass();
-            $group->id = groups_create_group($data);
+        if(!$group = groups_get_group_by_idnumber($courseid, $groupid)){
+            throw new moodle_exception('qisatpluginnotinstalled', 'enrol_qisat');
         }
-        
+
         groups_add_member($group->id, $userid);
-    }
-
-    /**
-     * returns the course group according to the token
-     *
-     * @param int course id
-     * @param string Service / group access token
-     * @return object|boolean a group object
-     */
-    function get_group($courseid, $token) {
-        global $CFG;
-        require_once($CFG->libdir . '/grouplib.php');
-
-        $groups = groups_get_all_groups($courseid);
-        foreach ($groups as $group) {
-            if($group->enrolmentkey == $token)
-                return $group;
-        }
-
-        return false;
     }
 
     /**
