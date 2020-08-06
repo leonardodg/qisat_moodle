@@ -149,4 +149,46 @@ class local_wsqisat_external extends external_api {
         );
     }
 
+    /**
+     * Returns description of get_autologin_key() parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function get_username_parameters() {
+        return new external_function_parameters (
+            array(
+            )
+        );
+    }
+
+    /**
+     * COPY, OVERRIDE AND CUSTOMIZER FUNCTION EXTERNAL MOODLE API 
+     * 
+     * File in admin/tool/mobile/classes/external.php line 278
+     * Customizer because could remove condicional User-agent = MoodleMobile
+     * 
+     * Creates an auto-login key for the current user. Is created only in https sites and is restricted by time and ip address.
+     *
+     * @param string $privatetoken the user private token for validating the request
+     * @return array with the settings and warnings
+     */
+    public static function get_username() {
+        global $USER;
+
+        return ['username' => $USER->username];
+    }
+
+    /**
+     * Returns description of get_autologin_key() result value.
+     *
+     * @return external_description
+     */
+    public static function get_username_returns() {
+        return new external_single_structure(
+            array(
+                'username' => new external_value(PARAM_ALPHANUMEXT, get_string('getusername', 'local_wsqisat')),
+            )
+        );
+    }
+
 }

@@ -37,6 +37,13 @@ $functions = array(
                 'classpath'   => 'local/wsqisat/externallib.php',
                 'description' => 'Auto-Login WebService QiSat',
                 'type'        => 'read',
+        ),
+        'local_wsqisat_get_username' => array(
+                'classname'   => 'local_wsqisat_external',
+                'methodname'  => 'get_username',
+                'classpath'   => 'local/wsqisat/externallib.php',
+                'description' => 'Get Username WebService QiSat',
+                'type'        => 'read',
         )
 );
 

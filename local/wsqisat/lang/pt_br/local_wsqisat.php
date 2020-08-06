@@ -12,3 +12,4 @@ $string['autologinkeygenerationlockout'] = 'Chave do Login Autotomático esta bl
 $string['autologinnotallowedtoadmins'] = 'Auto-login não é permitido para administrador do site.';
 $string['invalidprivatetoken'] = 'Chave do Login Autotomático inválida. O token não deve estar vazio ou passado pelo parâmetro GET.';
 $string['httpsrequired'] = 'HTTPS requerido';
+$string['getusername'] = 'Retorna o username do usuario logado';

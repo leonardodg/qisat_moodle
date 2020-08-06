@@ -12,3 +12,4 @@ $string['autologinkeygenerationlockout'] = 'Auto-login key generation is blocked
 $string['autologinnotallowedtoadmins'] = 'Auto-login is not allowed for site admins.';
 $string['invalidprivatetoken'] = 'Invalid private token. Token should not be empty or passed via GET parameter.';
 $string['httpsrequired'] = 'HTTPS required';
+$string['getusername'] = 'Returns the user name of the logged in user';
