@@ -51,10 +51,9 @@ class enrol_qisat_external extends external_api {
         return new external_function_parameters(array(
             'username' => new external_value(core_user::get_property_type('username'),
                 'Username policy is defined in Moodle security config.'),
+            'groupid' => new external_value(PARAM_TEXT, 'Id of the group'),
             'courseid' => new external_value(PARAM_INT, 'Id of the course', VALUE_DEFAULT, NULL),
             'categoryid' => new external_value(PARAM_INT, 'Id of the category', VALUE_DEFAULT, NULL),
-            'start' => new external_value(PARAM_INT, 'Initial course period', VALUE_DEFAULT, 0),
-            'end' => new external_value(PARAM_INT, 'Final course period', VALUE_DEFAULT, 0),
             // User
             'user' => new external_single_structure([
                 'firstname' => new external_value(core_user::get_property_type('firstname'), 'The first name(s) of the user'),
@@ -145,7 +144,7 @@ class enrol_qisat_external extends external_api {
      * @return array 
      * @since Moodle 2.2
      */
-    public static function create_user_enrol($username, $courseid = null, $categoryid = null, $start = null, $end = null, $user = null) {
+    public static function create_user_enrol($username, $groupid, $courseid = null, $categoryid = null, $user = null) {
         global $CFG, $DB;
 
         require_once($CFG->dirroot.'/auth/qisat/auth.php');
@@ -154,10 +153,9 @@ class enrol_qisat_external extends external_api {
 
         $parameters = array(
             'username'   => $username,
+            'groupid'    => $groupid,
             'courseid'   => $courseid,
-            'categoryid' => $categoryid,
-            'start'      => $start,
-            'end'        => $end
+            'categoryid' => $categoryid
         );
         if(!is_null($user))
             $parameters['user'] = $user;
@@ -230,14 +228,12 @@ class enrol_qisat_external extends external_api {
         
         foreach ($cursos as $curso) {
             $enrol->enrol_user_qisat(array(
-                'userid'    => $user->id, 
-                'courseid'  => $curso, 
-                'timestart' => $start_time, 
-                'timeend'   => $end_time 
+                'userid'   => $user->id, 
+                'courseid' => $curso, 
+                'idnumber' => $params['groupid']
             ));
+            $enrol->groups_qisat_add_member($curso, $user->id, $params['groupid']);
         }
-
-        $enrol->groups_qisat_add_member($params['courseid'], $user->id, $_REQUEST['wstoken']);
 
         return $return;
     }

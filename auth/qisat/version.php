@@ -9,6 +9,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2020051400;
+$plugin->version   = 2020072800;
 $plugin->requires  = 2019111200;
 $plugin->component = 'auth_qisat';
