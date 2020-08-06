@@ -1,11 +1,16 @@
 <?php
- 
-require_once(__DIR__ . '/../../config.php');
 
+namespace block_send_question\question;
+
+defined('MOODLE_INTERNAL') || die;
+
+require_once(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->libdir.'/formslib.php');
 
-class sendmessage_form extends moodleform {
+use moodleform;
+
+class message_form extends moodleform {
  
     /**
      * FALTA EXIBIR DESCRIÇÃO DA CATEGORIA

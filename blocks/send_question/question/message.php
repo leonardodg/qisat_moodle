@@ -1,10 +1,13 @@
 <?php
 
-require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/../../../config.php');
+require_once($CFG->libdir.'/blocklib.php');
 require_once($CFG->dirroot.'/blocks/send_question/lib.php');
-require_once($CFG->dirroot.'/blocks/send_question/sendmessage_form.php');
+require_once($CFG->dirroot.'/blocks/send_question/question/message_form.php');
 
 global $CFG, $DB, $USER;
+
+use \block_send_question\question\message_form;
 
 $courseid = required_param('courseid', PARAM_INT);
 $instanceid = required_param('instanceid', PARAM_INT);
@@ -15,7 +18,7 @@ $instance = $DB->get_record('block_instances', array('id' => $instanceid), '*', 
 $categorys = $DB->get_records('block_send_question_category', array('instanceid' => $instance->id), '', 'id, title, description' );
 
 $params = [ 'courseid' => $courseid, 'instanceid' => $instanceid ];
-$baseURL = new moodle_url('/blocks/send_question/sendmessage.php', $params);
+$baseURL = new moodle_url('/blocks/send_question/question/message.php', $params);
 $returnURL = new moodle_url('/course/view.php?id='.$course->id);
 
 if ($courseid === SITEID) {
@@ -42,11 +45,11 @@ if (!has_capability('block/send_question:send', $context)) {
 }
 
 $params['categorys'] = $categorys;
-$mform = new sendmessage_form($baseURL, $params);
+$mform = new message_form($baseURL, $params);
 $mform->set_data($params);
 
 if ($mform->is_cancelled()) {
-    redirect($baseURL);
+    redirect(new moodle_url('/course/view.php', ['id' => $course->id]));
 } else if ($data = $mform->get_data()) {
 
     $menssage = new stdClass();
@@ -62,7 +65,16 @@ if ($mform->is_cancelled()) {
     $menssage->title = $data->title;
     $menssage->timecreated = time();
 
-    $DB->insert_record('block_send_question', $menssage);
+    $result = $DB->insert_record('block_send_question', $menssage);
+
+    $block = block_instance('send_question', $instance);
+    $block->notify_send_question($menssage);
+
+    if($result){
+        redirect($returnURL, get_string('alert_send_sucesso', 'block_send_question'), null, \core\output\notification::NOTIFY_SUCCESS);
+    }else{
+        redirect($returnURL, get_string('alert_send_failed', 'block_send_question'), null, \core\output\notification::NOTIFY_SUCCESS);
+    }
 
     redirect($returnURL);
 }else{

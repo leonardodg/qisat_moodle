@@ -1,9 +1,14 @@
 <?php
- 
-require_once(__DIR__ . '/../../../config.php');
 
+namespace block_send_question\category;
+
+defined('MOODLE_INTERNAL') || die;
+
+require_once(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->libdir.'/formslib.php');
+
+use moodleform;
  
 class category_form extends moodleform {
  

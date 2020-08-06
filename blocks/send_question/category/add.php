@@ -6,6 +6,8 @@ require_once($CFG->dirroot.'/blocks/send_question/category/category_form.php');
 
 global $CFG, $DB;
 
+use \block_send_question\category\category_form;
+
 $courseid = required_param('courseid', PARAM_INT);
 $instanceid = required_param('instanceid', PARAM_INT);
 

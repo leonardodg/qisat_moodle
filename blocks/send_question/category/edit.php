@@ -6,6 +6,8 @@ require_once($CFG->dirroot.'/blocks/send_question/category/category_form.php');
 
 global $CFG, $DB, $OUTPUT;
 
+use \block_send_question\category\category_form;
+
 $id = required_param('id', PARAM_INT);
 
 $category = $DB->get_record('block_send_question_category', array('id' => $id), '*', MUST_EXIST);
@@ -43,8 +45,6 @@ $draftid_editor = file_get_submitted_draft_itemid('description');
 $currenttext = file_prepare_draft_area($draftid_editor, $context->id, 'block_send_question', 'description', 0, array('subdirs'=>true), $category->description);
 $category->description = array('text'=>$currenttext, 'format'=> FORMAT_HTML, 'itemid'=>$draftid_editor);
 
-$DB->update_record('block_send_question_category', $category);
-
 $sql = 'SELECT u.id
 FROM {block_send_question_user} qu 
 INNER JOIN {user} u on (u.id = qu.userid)
@@ -54,7 +54,6 @@ $users = $DB->get_records_sql($sql, array('instanceid' => $instance->id));
 $users = implode(',', array_keys($users)) ;
 
 $mform = new category_form('/blocks/send_question/category/edit.php?id='.$id, ['users' => $users]);
-$mform->set_data($category);
 
 if ($mform->is_cancelled()) {
     redirect($baseURL);
@@ -68,7 +67,6 @@ if ($mform->is_cancelled()) {
     $category->title = $data->title;
     $category->timemodified = time();
 
-     
     $DB->update_record('block_send_question_category', $category);
 
     if($users != implode(',', array_values($data->uids))){
@@ -91,6 +89,8 @@ if ($mform->is_cancelled()) {
     redirect($baseURL);
 }else{
     echo $OUTPUT->header();
+    $mform->set_data($category);
+
     $mform->display();
     echo $OUTPUT->footer();
 }

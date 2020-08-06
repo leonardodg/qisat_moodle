@@ -227,7 +227,7 @@ class list_question_table extends table_sql {
     function __construct($uniqueid) {
         parent::__construct($uniqueid);
 
-        $columns = array('id', 'title', 'question', 'timecreated', 'action');
+        $columns = array('id', 'title', 'question', 'timecreated', 'timeresponse', 'action');
         $this->define_columns($columns);
 
         $headers = array(
@@ -235,6 +235,7 @@ class list_question_table extends table_sql {
                         get_string('table_header_subject', 'block_send_question'),
                         get_string('table_header_message', 'block_send_question'),
                         get_string('table_header_timecreated', 'block_send_question'),
+                        get_string('table_header_timeresponse', 'block_send_question'),
                         get_string('table_header_action', 'block_send_question')
                     );
         $this->define_headers($headers);
@@ -256,14 +257,20 @@ class list_question_table extends table_sql {
      */
     function col_action($values) {
         
+        $responseHTML = ' ';
+        $responseURL = new moodle_url('/blocks/send_question/response/message.php',  [ 'id' =>  $values->id ]);
+        $viewURL = new moodle_url('/blocks/send_question/response/view.php',  [ 'id' =>  $values->id ]);
 
-        // FALTA AÇÃO PARA VISUALIZAR RESUMO DA MENSAGEM
-        $respURL = new moodle_url('/blocks/send_question/response.php',  [ 'id' =>  $values->id ]);
-        
+        $context = context_course::instance($values->courseid);
+
+        if (has_capability('block/send_question:response', $context) && !isset($values->timeresponse)) {
+            $responseHTML .= html_writer::link( $responseURL, 'response' );
+        }
+
         if ($this->is_downloading()) {
             return '';
         } else {
-            return html_writer::link( $respURL, 'response' );
+            return html_writer::link( $viewURL, 'view' ) . $responseHTML ;
         }
     }
 
@@ -280,6 +287,22 @@ class list_question_table extends table_sql {
             return '';
         } else {
             return isset($values->timecreated) ? userdate($values->timecreated, get_string('strftimedatetime', 'core_langconfig')) : '' ;
+        }
+    }
+
+    /**
+     * This function is called for each data row to allow processing of the
+     * username value.
+     *
+     * @param object $values Contains object with all the values of record.
+     * @return $string Return username with link to profile or username only
+     *     when downloading.
+     */
+    function col_timeresponse($values) {
+        if ($this->is_downloading() || !isset($values->timeresponse)) {
+            return '';
+        } else {
+            return userdate($values->timeresponse, get_string('strftimedatetime', 'core_langconfig'));
         }
     }
 }
