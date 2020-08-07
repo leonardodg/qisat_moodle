@@ -21,7 +21,7 @@ if (isloggedin() and !isguestuser()) {
 }
 
 // begin function tool_mobile\api::check_autologin_prerequisites($userid);
-if (!$CFG->enablewebservices or !$CFG->enablemobilewebservice) {
+if (!$CFG->enablewebservices) {
     throw new moodle_exception('enablewsdescription', 'webservice');
 }
 
