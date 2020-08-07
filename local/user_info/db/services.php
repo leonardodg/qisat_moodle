@@ -16,36 +16,28 @@
 /**
  * Web service local plugin template external functions and service definitions.
  *
- * @package    localwsqisat
- * @copyright  2011 Jerome Mouneyrac
+ * @package    localuserinfo
+ * @copyright  2020 Inty Castillo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 // We defined the web service functions to install.
 $functions = array(
-        'local_wsqisat_test' => array(
-                'classname'   => 'local_wsqisat_external',
-                'methodname'  => 'test',
-                'classpath'   => 'local/wsqisat/externallib.php',
-                'description' => 'Teste WebService QiSat',
+        'local_user_info_get_idnumber' => array(
+                'classname'   => 'local_user_info_external',
+                'methodname'  => 'get_idnumber',
+                'classpath'   => 'local/user_info/externallib.php',
+                'description' => 'Get idnumber WebService QiSat',
                 'type'        => 'read',
-                'testclientpath'=> 'local/wsqisat/testclient_from.php',
-        ),
-        'local_wsqisat_get_autologin_key' => array(
-                'classname'   => 'local_wsqisat_external',
-                'methodname'  => 'get_autologin_key',
-                'classpath'   => 'local/wsqisat/externallib.php',
-                'description' => 'Auto-Login WebService QiSat',
-                'type'        => 'read',
-        ),
+        )
 );
 
 // We define the services to install as pre-build services. A pre-build service is not editable by administrator.
 $services = array(
-        'QiSatWS' => array(
-                'functions' => array ('local_wsqisat_test', 'local_wsqisat_get_autologin_key'),
+        'GetInfo' => array(
+                'functions' => array ('local_user_info_get_idnumber'),
                 'restrictedusers' => 0,
                 'enabled'=>1,
-                'shortname' => 'qisatws',
+                'shortname' => 'getinfo',
         )
 );
