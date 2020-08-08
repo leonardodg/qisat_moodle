@@ -45,7 +45,7 @@ class local_user_info_external extends external_api {
     public static function get_idnumber_returns() {
         return new external_single_structure(
             array(
-                'idnumber' => new external_value(PARAM_ALPHANUMEXT, get_string('getidnumber', 'local_wsqisat')),
+                'idnumber' => new external_value(PARAM_ALPHANUMEXT, get_string('getidnumber', 'local_user_info')),
             )
         );
     }

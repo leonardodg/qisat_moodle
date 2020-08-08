@@ -1,3 +1,3 @@
 <?php
-$string['pluginname'] = 'Web service QiSat';
+$string['pluginname'] = 'Local User Info QiSat';
 $string['getidnumber'] = 'Retorna o idnumber do usuário logado';
