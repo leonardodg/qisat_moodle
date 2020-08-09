@@ -484,8 +484,6 @@ class enrol_qisat_plugin extends enrol_plugin {
 
         $rs = $DB->get_recordset_sql($sql, $params);
 
-        $trace->output('sql '. print_r($params));
-
         foreach($rs as $ue) {
             $user = $DB->get_record('user', array('id'=>$ue->userid));
             $trace->output('userid: '. $ue->userid .' timestart: '.userdate($ue->timestart, '', $CFG->timezone)) ;
