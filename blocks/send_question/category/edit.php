@@ -41,10 +41,6 @@ if (!has_capability('block/send_question:category:edit', $context)) {
     require_capability('block/send_question:category:edit', $context);
 }
 
-$draftid_editor = file_get_submitted_draft_itemid('description');
-$currenttext = file_prepare_draft_area($draftid_editor, $context->id, 'block_send_question', 'description', 0, array('subdirs'=>true), $category->description);
-$category->description = array('text'=>$currenttext, 'format'=> FORMAT_HTML, 'itemid'=>$draftid_editor);
-
 $sql = 'SELECT u.id
 FROM {block_send_question_user} qu 
 INNER JOIN {user} u on (u.id = qu.userid)
@@ -53,13 +49,23 @@ WHERE qu.instanceid = :instanceid ';
 $users = $DB->get_records_sql($sql, array('instanceid' => $instance->id));
 $users = implode(',', array_keys($users)) ;
 
-$mform = new category_form('/blocks/send_question/category/edit.php?id='.$id, ['users' => $users]);
+$mform = new category_form('/blocks/send_question/category/edit.php?id='.$id, ['users' => $users, 'id' => $category->id]);
+
+if (!empty($category->description)) {
+    $contextB = context_block::instance($instance->id);
+    $text = $category->description;
+    $category->description = array();
+    $draftid_editor = file_get_submitted_draft_itemid('description');
+    $category->description['text'] = file_prepare_draft_area($draftid_editor, $contextB->id, 'block_send_question', 'description', $category->id, array('subdirs'=>true), $text);
+    $category->description['format'] = FORMAT_HTML;
+    $category->description['itemid'] = $draftid_editor;
+}
 
 if ($mform->is_cancelled()) {
     redirect($baseURL);
 } else if ($data = $mform->get_data()) {
 
-    $category->description = file_save_draft_area_files($data->description['itemid'], $context->id, 'block_send_question', 'description', 0, array('subdirs'=>true), $data->description['text']);
+    $category->description = file_save_draft_area_files($data->description['itemid'], $contextB->id, 'block_send_question', 'description', 0, array('subdirs'=>true), $data->description['text']);
     $category->format = $data->description['format'];
 
     $category->courseid = $data->courseid;

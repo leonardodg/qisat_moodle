@@ -54,8 +54,10 @@ if ($mform->is_cancelled()) {
 
     $menssage = new stdClass();
 
-    $menssage->question = file_save_draft_area_files($data->description['itemid'], $context->id, 'block_send_question', 'message', 0, array('subdirs'=>true), $data->description['text']);
-    $menssage->format = $data->description['format'];
+    $contextB = context_block::instance($instanceid);
+    $draftid_editor = file_get_submitted_draft_itemid('question');
+    $menssage->question = file_save_draft_area_files($data->question['itemid'], $contextB->id, 'block_send_question', 'question', 0, array('subdirs'=>true), $data->question['text']);
+    $menssage->format = $data->question['format'];
 
     $menssage->userid = $USER->id;
     $menssage->courseid = $data->courseid;

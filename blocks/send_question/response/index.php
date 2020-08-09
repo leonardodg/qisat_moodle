@@ -50,8 +50,12 @@ $table = new list_question_table('table_list_block_send_question_response');
 // $this->is_downloading($download, 'list_category', get_string('pluginname', 'block_send_question'));
 $table->define_baseurl($baseURL);
 
-$from = "{block_send_question} q";
-$table->set_sql('*', $from, $where, $params );
+$fields = 'q.id, bc.title as category, c.fullname as course, q.title, q.timecreated, q.timeresponse, q.courseid, q.instanceid, q.categoryid, q.userid, q.useridresponse ';
+
+$from = "{block_send_question} q 
+            JOIN {block_send_question_category} bc on (bc.id = q.categoryid) 
+            JOIN {course} c on (c.id = q.courseid)";
+$table->set_sql($fields, $from, $where, $params );
 
 if (!$table->is_downloading()) {
     $PAGE->set_url($baseURL);
@@ -79,11 +83,3 @@ if (!$table->is_downloading()) {
 }else{
     $table->out(40, true);
 }
-
-
-/*
-
-- TEMA DO EMAIL 
-- DOWNLOAD DA RESPOSTAS
-
-*/

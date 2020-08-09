@@ -15,6 +15,10 @@ $string['button_history_text'] = 'Histórico';
 $string['button_send_text'] = 'Enviar Pergunta';
 $string['button_response_text'] = 'Responder Dúvida';
 
+$string['table_header_action'] = 'Ação';
+$string['table_header_category'] = 'Categoria';
+$string['table_header_course'] = 'Curso';
+$string['table_header_user'] = 'Aluno';
 $string['table_header_id'] = 'ID';
 $string['table_header_title'] = 'Título';
 $string['table_header_description'] = 'Descrição';
@@ -23,7 +27,6 @@ $string['table_header_message'] = 'Texto da Menssagem';
 $string['table_header_timecreated'] = 'Data Criação';
 $string['table_header_timemodified'] = 'Data Modificação';
 $string['table_header_timeresponse'] = 'Data resposta';
-$string['table_header_action'] = 'Ação';
 
 $string['label_category_description'] = 'Descrição da Categoria';
 $string['label_category_title'] = 'Título da Categoria';
@@ -38,18 +41,23 @@ $string['menu_edit'] = 'Configurar Categorias';
 $string['menu_list'] = 'Listar Perguntas';
 $string['category'] = 'Categoria';
 $string['block'] = 'Bloco';
+$string['del'] = 'Deletar';
 $string['edit'] = 'Editar';
 $string['list'] = 'Listar';
 $string['add'] = 'Adicionar';
-$string['sendmessage'] = 'Enviar Menssagem';
+$string['answer'] = 'Resposta';
+$string['response'] = 'Responder';
+$string['view'] = 'Visualizar';
+$string['send_message'] = 'Menssagem';
+$string['response_message'] = 'Responder';
 $string['select_category'] = 'Selecionar categoria';
 
-
+$string['pagetitle_response'] = 'Block Enviar Pergunta: Resposta da Pergunta';
 $string['pagetitle_categoria_index'] = 'Block Enviar Pergunta: Listar Categorias';
 $string['pagetitle_categoria_delete'] = 'Block Enviar Pergunta: Deletar Categoria';
 $string['pagetitle_categoria_edit'] = 'Block Enviar Pergunta: Editar Categoria';
 $string['pagetitle_categoria_add'] = 'Block Enviar Pergunta: Adicionar Categoria';
-$string['pagetitle_send_message'] = 'Block Send Questions: Send Message';
+$string['pagetitle_send_message'] = 'Block Enviar Pergunta: Enviar Mensagem';
 $string['message_confirm_delete'] = 'Comfirmar exclusão da Categoria <b>{$a->title}</b> - (ID: {$a->id}) ';
 $string['send_question:addinstance'] = 'Adicionar novo Bloco Enviar Pergunta';
 $string['block/send_question:category:add'] = 'Adicionar Categoria no Bloco Enviar Pergunta';
@@ -83,7 +91,7 @@ $string['message_send_question_user_body'] = 'Prezado(a) {$a->user},
 
 Esta é uma notificação de que suas perguntas no curso \'{$a->course}\' foi respondida em {$a->timeresponse}.';
 
-$string['message_send_response_instructor_subject'] = 'question has been answered';
+$string['message_send_response_instructor_subject'] = 'pergunta foi respondida';
 $string['message_send_response_instructor_body'] = 'Prezado(a) {$a->user},
 
 Esta é uma notificação de envio de responta para a pergunta no curso \'{$a->course}\' enviada em {$a->timeresponse}.';

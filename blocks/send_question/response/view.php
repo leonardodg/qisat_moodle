@@ -27,7 +27,7 @@ $PAGE->set_url($baseURL);
 $PAGE->set_pagelayout('report');
 $PAGE->navbar->add(get_string('blocks'));
 $PAGE->navbar->add(get_string('pluginname', 'block_send_question'));
-$PAGE->navbar->add(get_string('response_message', 'block_send_question'));
+$PAGE->navbar->add(get_string('answer', 'block_send_question'));
 $PAGE->set_title(get_string('pagetitle_response', 'block_send_question'));
 $PAGE->set_heading(get_string('pagetitle_response', 'block_send_question'));
 
@@ -41,6 +41,18 @@ if($question->userid == $USER->id){
     $returnURL = new moodle_url('/blocks/send_question/response/my.php', [ 'courseid' => $question->courseid, 'instanceid' => $question->instanceid ]);
 }else{
     $returnURL = new moodle_url('/blocks/send_question/response/index.php', [ 'courseid' => $question->courseid, 'instanceid' => $question->instanceid ]);
+}
+
+$contextB = context_block::instance($question->instanceid);
+
+if (!empty($question->question)) {
+    $question->question = file_rewrite_pluginfile_urls($question->question, 'pluginfile.php', $contextB->id, 'block_send_question', 'question', NULL);
+    $question->question = format_text($question->question, FORMAT_HTML);
+}
+
+if (!empty($question->response)) {
+    $question->response = file_rewrite_pluginfile_urls($question->response, 'pluginfile.php', $contextB->id, 'block_send_question', 'response', NULL);
+    $question->response = format_text($question->response, FORMAT_HTML);
 }
 
 $button = '';
