@@ -9,6 +9,7 @@ require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->libdir.'/formslib.php');
 
 use moodleform;
+use context_course;
 
 /**
  * Falta Finalizar

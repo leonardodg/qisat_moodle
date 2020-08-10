@@ -46,16 +46,12 @@ function block_send_question_pluginfile($course, $birecord_or_cm, $context, $fil
         // At this point there is no way to check SYSTEM context, so ignoring it.
     }
 
-    if ($filearea !== 'content') {
-        send_file_not_found();
-    }
-
     $fs = get_file_storage();
 
     $filename = array_pop($args);
     $filepath = $args ? '/'.implode('/', $args).'/' : '/';
 
-    if (!$file = $fs->get_file($context->id, 'block_send_question', 'content', 0, $filepath, $filename) or $file->is_directory()) {
+    if (!$file = $fs->get_file($context->id, 'block_send_question', $filearea, 0, $filepath, $filename) or $file->is_directory()) {
         send_file_not_found();
     }
 
@@ -138,11 +134,10 @@ class list_category_table extends table_sql {
     function __construct($uniqueid) {
         parent::__construct($uniqueid);
 
-        $columns = array('id', 'title', 'description', 'timecreated', 'timemodified', 'action');
+        $columns = array('title', 'description', 'timecreated', 'timemodified', 'action');
         $this->define_columns($columns);
 
         $headers = array(
-                        get_string('table_header_id', 'block_send_question'),
                         get_string('table_header_title', 'block_send_question'),
                         get_string('table_header_description', 'block_send_question'),
                         get_string('table_header_timecreated', 'block_send_question'),
@@ -164,14 +159,22 @@ class list_category_table extends table_sql {
      *     when downloading.
      */
     function col_action($values) {
+
+        global $OUTPUT;
         
+        $delHTML = ' ';
         $editURL = new moodle_url('/blocks/send_question/category/edit.php',  [ 'id' =>  $values->id ]);
         $deltURL = new moodle_url('/blocks/send_question/category/delete.php',  [ 'id' =>  $values->id, 'sesskey' => sesskey(), ]);
-        
+        $context = context_course::instance($values->courseid);
+
+        if (has_capability('block/send_question:category:delete', $context)) {
+            $delHTML .= html_writer::link( $deltURL, $OUTPUT->pix_icon('t/delete', get_string('del', 'block_send_question')));
+        }
+
         if ($this->is_downloading()) {
             return '';
         } else {
-            return html_writer::link( $editURL, 'edit', ).' '.html_writer::link( $deltURL, 'del');
+            return html_writer::link( $editURL, $OUTPUT->pix_icon('t/edit', get_string('edit', 'block_send_question'))).$delHTML;
         }
     }
 
@@ -207,6 +210,33 @@ class list_category_table extends table_sql {
         }
     }
 
+    /**
+     * This function is called for each data row to allow processing of the
+     * username value.
+     *
+     * @param object $values Contains object with all the values of record.
+     * @return $string Return username with link to profile or username only
+     *     when downloading.
+     */
+    function col_description($values) {
+        if ($this->is_downloading()) {
+            return '';
+        } else {
+
+            $contextB = context_block::instance($values->instanceid);
+
+            if (!empty($values->description)) {
+                $values->description = file_rewrite_pluginfile_urls( $values->description, 'pluginfile.php', $contextB->id, 'block_send_question', 'description', NULL);
+                $values->description = format_text( $values->description, FORMAT_HTML);
+            }
+
+            return $values->description;
+        }
+    }
+    
+
+
+
 }
 
 
@@ -227,23 +257,23 @@ class list_question_table extends table_sql {
     function __construct($uniqueid) {
         parent::__construct($uniqueid);
 
-        $columns = array('id', 'title', 'question', 'timecreated', 'timeresponse', 'action');
+        $columns = array('category', 'course', 'title', 'user', 'timecreated', 'timeresponse', 'action');
         $this->define_columns($columns);
 
         $headers = array(
-                        get_string('table_header_id', 'block_send_question'),
+                        get_string('table_header_category', 'block_send_question'),
+                        get_string('table_header_course', 'block_send_question'),
                         get_string('table_header_subject', 'block_send_question'),
-                        get_string('table_header_message', 'block_send_question'),
+                        get_string('table_header_user', 'block_send_question'),
                         get_string('table_header_timecreated', 'block_send_question'),
                         get_string('table_header_timeresponse', 'block_send_question'),
                         get_string('table_header_action', 'block_send_question')
                     );
         $this->define_headers($headers);
         $this->no_sorting('question');
+        $this->no_sorting('course');
+        $this->no_sorting('category');
         $this->no_sorting('action');
-
-        // FALTA INSERIR COLUNAS 
-        // SIGLA CURSO - CATEGORIA - NOME DO ALUNO - STATUS DE RESPOSTA
 
     }
 
@@ -256,6 +286,7 @@ class list_question_table extends table_sql {
      *     when downloading.
      */
     function col_action($values) {
+        global $OUTPUT;
         
         $responseHTML = ' ';
         $responseURL = new moodle_url('/blocks/send_question/response/message.php',  [ 'id' =>  $values->id ]);
@@ -264,13 +295,13 @@ class list_question_table extends table_sql {
         $context = context_course::instance($values->courseid);
 
         if (has_capability('block/send_question:response', $context) && !isset($values->timeresponse)) {
-            $responseHTML .= html_writer::link( $responseURL, 'response' );
+            $responseHTML .= html_writer::link($responseURL, $OUTPUT->pix_icon('t/message', get_string('response', 'block_send_question')));
         }
 
         if ($this->is_downloading()) {
             return '';
         } else {
-            return html_writer::link( $viewURL, 'view' ) . $responseHTML ;
+            return html_writer::link($viewURL, $OUTPUT->pix_icon('t/viewdetails', get_string('view', 'block_send_question'))). $responseHTML ;
         }
     }
 
@@ -287,6 +318,23 @@ class list_question_table extends table_sql {
             return '';
         } else {
             return isset($values->timecreated) ? userdate($values->timecreated, get_string('strftimedatetime', 'core_langconfig')) : '' ;
+        }
+    }
+
+    /**
+     * This function is called for each data row to allow processing of the
+     * user value.
+     *
+     * @param object $values Contains object with all the values of record.
+     * @return $string Return username with link to profile or username only
+     *     when downloading.
+     */
+    function col_user($values) {
+        if ($this->is_downloading()) {
+            return '';
+        } else {
+            $user = \core_user::get_user($values->userid);
+            return fullname($user);
         }
     }
 

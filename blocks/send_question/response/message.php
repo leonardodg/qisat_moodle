@@ -43,6 +43,20 @@ if(isset($question->timeresponse)){
     redirect($returnURL, get_string('alert_response_info', 'block_send_question'), null, \core\output\notification::NOTIFY_INFO);
 }
 
+$instance = $DB->get_record('block_instances', array('id' => $question->instanceid));
+$contextB = context_block::instance($question->instanceid);
+
+if (!empty($question->question)) {
+    $question->question = file_rewrite_pluginfile_urls($question->question, 'pluginfile.php', $contextB->id, 'block_send_question', 'question', NULL);
+    $question->question = format_text($question->question, FORMAT_HTML);
+}
+
+if (!empty($question->response)) {
+    $question->response = file_rewrite_pluginfile_urls($question->response, 'pluginfile.php', $contextB->id, 'block_send_question', 'response', NULL);
+    $question->response = format_text($question->response, FORMAT_HTML);
+}
+
+
 $output = $PAGE->get_renderer('block_send_question');
 $renderable = new output\question($question);
 
@@ -53,8 +67,9 @@ if ($mform->is_cancelled()) {
     redirect($baseURL);
 } else if ($data = $mform->get_data()) {
 
-    $question->response = file_save_draft_area_files($data->response['itemid'], $context->id, 'block_send_question', 'response', 0, array('subdirs'=>true), $data->response['text']);
-    $question->format = $data->reponse['format'];
+    $draftid_editor = file_get_submitted_draft_itemid('question');
+    $question->response = file_save_draft_area_files($data->response['itemid'], $contextB->id, 'block_send_question', 'response', 0, array('subdirs'=>true), $data->response['text']);
+    $question->format = $data->response['format'];
     $question->timeresponse = time();
     $question->useridresponse = $USER->id;
 

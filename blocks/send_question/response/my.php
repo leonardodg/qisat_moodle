@@ -24,7 +24,10 @@ $returnURL = new moodle_url('/course/view.php', ['id' => $courseid]);
 
 $params = [ 'courseid' => $courseid, 'instanceid' => $instanceid, 'userid' => $USER->id ];
 $where = "q.courseid=:courseid and q.instanceid=:instanceid and q.userid = :userid";
-$from = "{block_send_question} q";
+$fields = 'q.id, bc.title as category, c.fullname as course, q.title, q.timecreated, q.timeresponse, q.courseid, q.instanceid, q.categoryid, q.userid, q.useridresponse ';
+$from = "{block_send_question} q 
+            JOIN {block_send_question_category} bc on (bc.id = q.categoryid) 
+            JOIN {course} c on (c.id = q.courseid)";
 
 $PAGE->set_context($context);
 $PAGE->set_course($course);
@@ -33,13 +36,13 @@ $PAGE->set_pagelayout('report');
 
 $table = new list_question_table('table_list_block_send_question_response');
 $table->define_baseurl($baseURL);
-$table->set_sql('*', $from, $where, $params );
+$table->set_sql($fields, $from, $where, $params );
 
 $PAGE->set_url($baseURL);
 
 $PAGE->navbar->add(get_string('blocks'));
 $PAGE->navbar->add(get_string('pluginname', 'block_send_question'));
-$PAGE->navbar->add(get_string('response_message', 'block_send_question'));
+$PAGE->navbar->add(get_string('answer', 'block_send_question'));
 
 $PAGE->set_title(get_string('pagetitle_response', 'block_send_question'));
 $PAGE->set_heading(get_string('pagetitle_response', 'block_send_question'));
