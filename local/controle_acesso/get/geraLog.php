@@ -24,7 +24,7 @@ if($USER->id > 0 && isset($_POST['url']) && isset($_POST['conteudo']) && isset($
 
 	if($courseModule = $controleAcesso->buscaCourseModule($idCourse,$externalUrl)) {
 
-		$course = $DB->get_record('course', array('id' => $courseModule->course), '*', MUST_EXIST);
+		$course = $DB->get_record('course', array('id' => $courseModule->course));
 
 		$completion = new completion_info($course);
 		$completion->set_module_viewed($courseModule, $USER->id);
@@ -36,7 +36,7 @@ if($USER->id > 0 && isset($_POST['url']) && isset($_POST['conteudo']) && isset($
 		$context = context_module::instance($courseModule->id);
 		require_capability('mod/url:view', $context);
 
-		$url = $DB->get_record('url', array('id'=>$courseModule->instance), '*', MUST_EXIST);
+		$url = $DB->get_record('url', array('id'=>$courseModule->instance));
 
 		$params = array(
 			'context' => $context,
@@ -57,8 +57,15 @@ if($USER->id > 0 && isset($_POST['url']) && isset($_POST['conteudo']) && isset($
 	echo 'erro: parâmetros inválidos'.'<br/>'.$USER->id;
 }
 
+/**
+ * Retorna URL Base + com path porem sem resource e sem query
+ */
 function montaUrl($url){
 	GLOBAL $CFG;
+
+	if( strpos($url, '?') > 0){
+		$url = substr($url, 0, strpos($url, '?'));
+	}
 
 	$explodeUrl = explode('/', $url);
 	$url = '';
@@ -79,10 +86,10 @@ function atualizarDadosLog($userId, $idSection, $idModule, $course = null){
 	$sectionAccess->user_id = $userId;
 	$sectionAccess->course_section_id = $idSection;
 
-	$controleAcesso->atualizarDadosAcesso($sectionAccess);
+	//$controleAcesso->atualizarDadosAcesso($sectionAccess);
 
 	$sectionAccess->course_module_id = $idModule;
 	$sectionAccess->ip = $USER->lastip;
-	$controleAcesso->inserirDadosLog($sectionAccess);
+	//$controleAcesso->inserirDadosLog($sectionAccess);
 	$controleAcesso->atualizarVisualizacaoSection($userId, $course);
 }
