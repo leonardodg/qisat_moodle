@@ -42,8 +42,7 @@ if (!has_capability('block/send_question:category:add', $context)) {
     require_capability('block/send_question:category:add', $context);
 }
 
-$mform = new category_form($addURL);
-$mform->set_data($urlParams);
+$mform = new category_form($addURL, $urlParams);
 
 if ($mform->is_cancelled()) {
     redirect($baseURL);

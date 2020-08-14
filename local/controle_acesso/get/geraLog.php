@@ -58,6 +58,9 @@ if($USER->id > 0 && isset($_POST['url']) && isset($_POST['conteudo']) && isset($
 	echo 'erro: parâmetros inválidos'.'<br/>'.$USER->id;
 }
 
+/**
+ * Retorna URL Base + com path porem sem resource e sem query
+ */
 function montaUrl($url){
 	GLOBAL $CFG;
 
