@@ -24,7 +24,7 @@ if($USER->id > 0 && isset($_POST['url']) && isset($_POST['conteudo']) && isset($
 
 	if($courseModule = $controleAcesso->buscaCourseModule($idCourse,$externalUrl)) {
 
-		$course = $DB->get_record('course', array('id' => $courseModule->course), '*', MUST_EXIST);
+		$course = $DB->get_record('course', array('id' => $courseModule->course));
 
 		$completion = new completion_info($course);
 		$completion->set_module_viewed($courseModule, $USER->id);
@@ -36,7 +36,7 @@ if($USER->id > 0 && isset($_POST['url']) && isset($_POST['conteudo']) && isset($
 		$context = context_module::instance($courseModule->id);
 		require_capability('mod/url:view', $context);
 
-		$url = $DB->get_record('url', array('id'=>$courseModule->instance), '*', MUST_EXIST);
+		$url = $DB->get_record('url', array('id'=>$courseModule->instance));
 
 		$params = array(
 			'context' => $context,
@@ -51,7 +51,8 @@ if($USER->id > 0 && isset($_POST['url']) && isset($_POST['conteudo']) && isset($
 
 		echo 'sucesso';
 	}else{
-		echo 'erro: módulo inválido';
+		echo 'erro: módulo inválido: ';
+		var_dump($externalUrl);
 	}
 }else{
 	echo 'erro: parâmetros inválidos'.'<br/>'.$USER->id;
@@ -60,6 +61,10 @@ if($USER->id > 0 && isset($_POST['url']) && isset($_POST['conteudo']) && isset($
 function montaUrl($url){
 	GLOBAL $CFG;
 
+	if( strpos($url, '?idN') > 0){
+	  $url = substr($url, 0, strpos($url, '?idN'));
+	}
+
 	$explodeUrl = explode('/', $url);
 	$url = '';
 	$totalBarras = (substr_count($CFG->wwwroot, '/') + 6);
@@ -67,6 +72,11 @@ function montaUrl($url){
 	for ($i=0; $i < $totalBarras; $i++) {
 		$url .= $explodeUrl[$i].'/';
 	}
+
+//	echo '<br> url fim:'
+//	var_dump($url);
+//	die;
+
 	return $url;
 }
 
@@ -79,10 +89,10 @@ function atualizarDadosLog($userId, $idSection, $idModule, $course = null){
 	$sectionAccess->user_id = $userId;
 	$sectionAccess->course_section_id = $idSection;
 
-	$controleAcesso->atualizarDadosAcesso($sectionAccess);
+	//$controleAcesso->atualizarDadosAcesso($sectionAccess);
 
 	$sectionAccess->course_module_id = $idModule;
 	$sectionAccess->ip = $USER->lastip;
-	$controleAcesso->inserirDadosLog($sectionAccess);
+	//$controleAcesso->inserirDadosLog($sectionAccess);
 	$controleAcesso->atualizarVisualizacaoSection($userId, $course);
 }
