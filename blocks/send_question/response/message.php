@@ -45,23 +45,17 @@ if(isset($question->timeresponse)){
 
 $instance = $DB->get_record('block_instances', array('id' => $question->instanceid));
 $contextB = context_block::instance($question->instanceid);
+$options = array('noclean' => true, 'overflowdiv' => true, 'context' => $contextB);
 
 if (!empty($question->question)) {
     $question->question = file_rewrite_pluginfile_urls($question->question, 'pluginfile.php', $contextB->id, 'block_send_question', 'question', NULL);
-    $question->question = format_text($question->question, FORMAT_HTML);
+    $question->question = format_text($question->question, FORMAT_HTML, $options);
 }
-
-if (!empty($question->response)) {
-    $question->response = file_rewrite_pluginfile_urls($question->response, 'pluginfile.php', $contextB->id, 'block_send_question', 'response', NULL);
-    $question->response = format_text($question->response, FORMAT_HTML);
-}
-
 
 $output = $PAGE->get_renderer('block_send_question');
 $renderable = new output\question($question);
 
-$mform = new message_form($baseURL);
-$mform->set_data($params);
+$mform = new message_form($baseURL, ['instanceid' => $question->instanceid ]);
 
 if ($mform->is_cancelled()) {
     redirect($baseURL);

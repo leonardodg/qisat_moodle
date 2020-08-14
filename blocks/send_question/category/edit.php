@@ -49,7 +49,7 @@ WHERE qu.instanceid = :instanceid ';
 $users = $DB->get_records_sql($sql, array('instanceid' => $instance->id));
 $users = implode(',', array_keys($users)) ;
 
-$mform = new category_form('/blocks/send_question/category/edit.php?id='.$id, ['users' => $users, 'id' => $category->id]);
+$mform = new category_form('/blocks/send_question/category/edit.php?id='.$id, ['users' => $users, 'id' => $category->id, 'instanceid' => $instance->id]);
 
 if (!empty($category->description)) {
     $contextB = context_block::instance($instance->id);

@@ -46,7 +46,6 @@ if (!has_capability('block/send_question:send', $context)) {
 
 $params['categorys'] = $categorys;
 $mform = new message_form($baseURL, $params);
-$mform->set_data($params);
 
 if ($mform->is_cancelled()) {
     redirect(new moodle_url('/course/view.php', ['id' => $course->id]));
