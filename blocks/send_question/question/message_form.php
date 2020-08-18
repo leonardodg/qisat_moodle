@@ -9,7 +9,7 @@ require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->libdir.'/formslib.php');
 
 use moodleform;
-use context_course;
+use context_block;
 
 class message_form extends moodleform {
  
@@ -21,6 +21,8 @@ class message_form extends moodleform {
  
         $mform = $this->_form;
         $data = $this->_customdata;
+
+        $context = context_block::instance($data['instanceid']);
 
         $mform->addElement('hidden', 'courseid', $data['courseid']);
         $mform->addElement('hidden', 'instanceid', $data['instanceid']);
@@ -37,13 +39,13 @@ class message_form extends moodleform {
         $mform->setType('title', PARAM_TEXT);
         $mform->addRule('title', get_string('required'), 'required');
 
-        $editoroptions = array('maxfiles' => EDITOR_UNLIMITED_FILES, 'noclean'=>true, 'context'=> '');
+        $editoroptions = array('maxfiles' => EDITOR_UNLIMITED_FILES, 'noclean'=>true, 'context'=> $context, 'autosave' => false);
         $mform->addElement('editor', 'question', get_string('label_message', 'block_send_question'), null, $editoroptions);
         $mform->setType('question', PARAM_RAW);
         $mform->addRule('question', get_string('required'), 'required');
         
         $buttonarray=array();
-        $buttonarray[] = $mform->createElement('submit', 'submitbutton', get_string('savechanges'));
+        $buttonarray[] = $mform->createElement('submit', 'submitbutton', get_string('button_send_text', 'block_send_question'));
         $buttonarray[] = $mform->createElement('cancel');
         $mform->addGroup($buttonarray, 'buttonar', '', ' ', false);
 

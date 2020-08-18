@@ -9,6 +9,7 @@ require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->libdir.'/formslib.php');
 
 use moodleform;
+use context_block;
  
 class category_form extends moodleform {
  
@@ -17,6 +18,8 @@ class category_form extends moodleform {
  
         $mform = $this->_form;
         $data = $this->_customdata;
+
+        $context = context_block::instance($data['instanceid']);
 
         $mform->addElement('hidden', 'courseid', $data['courseid']);
         $mform->addElement('hidden', 'instanceid', $data['instanceid']);
@@ -48,7 +51,7 @@ class category_form extends moodleform {
         $mform->setType('title', PARAM_TEXT);
         $mform->addRule('title', get_string('required'), 'required');
 
-        $editoroptions = array('maxfiles' => EDITOR_UNLIMITED_FILES, 'noclean'=>true, 'context'=> $data['description']['text']);
+        $editoroptions = array('maxfiles' => EDITOR_UNLIMITED_FILES, 'noclean'=>true, 'context'=> $context, 'autosave' => false);
         $mform->addElement('editor', 'description', get_string('label_config_description', 'block_send_question'), null, $editoroptions);
         $mform->setType('description', PARAM_RAW);
         

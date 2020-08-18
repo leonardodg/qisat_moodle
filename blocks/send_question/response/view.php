@@ -44,15 +44,16 @@ if($question->userid == $USER->id){
 }
 
 $contextB = context_block::instance($question->instanceid);
+$options = array('noclean' => true, 'overflowdiv' => true, 'context' => $contextB);
 
 if (!empty($question->question)) {
     $question->question = file_rewrite_pluginfile_urls($question->question, 'pluginfile.php', $contextB->id, 'block_send_question', 'question', NULL);
-    $question->question = format_text($question->question, FORMAT_HTML);
+    $question->question = format_text($question->question, FORMAT_HTML, $options);
 }
 
 if (!empty($question->response)) {
     $question->response = file_rewrite_pluginfile_urls($question->response, 'pluginfile.php', $contextB->id, 'block_send_question', 'response', NULL);
-    $question->response = format_text($question->response, FORMAT_HTML);
+    $question->response = format_text($question->response, FORMAT_HTML, $options);
 }
 
 $button = '';
