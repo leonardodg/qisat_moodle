@@ -67,20 +67,5 @@ function xmldb_library_upgrade($oldversion) {
     // Automatically generated Moodle v3.8.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2019111800) {
-
-        // Define field showexpanded to be added to library
-        $table = new xmldb_table('library');
-        $field = new xmldb_field('src', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, '', 'showexpanded');
-
-        // Conditionally launch add field showexpanded
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-
-        // library savepoint reached
-        upgrade_mod_savepoint(true, 2019111801, 'library');
-    }
-
     return true;
 }
