@@ -84,7 +84,7 @@ Esta é uma notificação de que suas perguntas no curso \'{$a->course}\' foi re
 $string['message_send_question_instructor_subject'] = 'nova pergunta recebida';
 $string['message_send_question_instructor_body'] = 'Prezado(a) {$a->user},
 
-Esta é uma notificação de recibimento de uma nova pergunta no curso \'{$a->course}\' enviada em {$a->timecreated}.';
+Esta é uma notificação de recebimento de uma nova pergunta no curso \'{$a->course}\' enviada em {$a->timecreated}.';
 
 
 $string['message_send_response_user_subject'] = 'sua pergunta foi respondida';
@@ -95,4 +95,4 @@ Esta é uma notificação de que suas perguntas no curso \'{$a->course}\' foi re
 $string['message_send_response_instructor_subject'] = 'pergunta foi respondida';
 $string['message_send_response_instructor_body'] = 'Prezado(a) {$a->user},
 
-Esta é uma notificação de envio de responta para a pergunta no curso \'{$a->course}\' enviada em {$a->timeresponse}.';
+Esta é uma notificação de envio de resposta para a pergunta no curso \'{$a->course}\' enviada em {$a->timeresponse}.';
