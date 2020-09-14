@@ -3221,8 +3221,9 @@ function validate_user_key($keyvalue, $script, $instance) {
 
     if ($key->iprestriction) {
         $remoteaddr = getremoteaddr(null);
+	//echo $remoteaddr;die;
         if (empty($remoteaddr) or !address_in_subnet($remoteaddr, $key->iprestriction)) {
-            print_error('ipmismatch');
+            //print_error('ipmismatch');
         }
     }
     return $key;

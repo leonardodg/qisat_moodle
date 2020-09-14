@@ -51,7 +51,8 @@ if($USER->id > 0 && isset($_POST['url']) && isset($_POST['conteudo']) && isset($
 
 		echo 'sucesso';
 	}else{
-		echo 'erro: módulo inválido';
+		echo 'erro: módulo inválido: ';
+		var_dump($externalUrl);
 	}
 }else{
 	echo 'erro: parâmetros inválidos'.'<br/>'.$USER->id;
@@ -63,8 +64,8 @@ if($USER->id > 0 && isset($_POST['url']) && isset($_POST['conteudo']) && isset($
 function montaUrl($url){
 	GLOBAL $CFG;
 
-	if( strpos($url, '?') > 0){
-		$url = substr($url, 0, strpos($url, '?'));
+	if( strpos($url, '?idN') > 0){
+	  $url = substr($url, 0, strpos($url, '?idN'));
 	}
 
 	$explodeUrl = explode('/', $url);
@@ -74,6 +75,11 @@ function montaUrl($url){
 	for ($i=0; $i < $totalBarras; $i++) {
 		$url .= $explodeUrl[$i].'/';
 	}
+
+//	echo '<br> url fim:'
+//	var_dump($url);
+//	die;
+
 	return $url;
 }
 
