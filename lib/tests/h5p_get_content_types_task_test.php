@@ -47,6 +47,15 @@ class h5p_get_content_types_task_testcase extends advanced_testcase {
         require_once($CFG->libdir . '/tests/fixtures/testable_core_h5p.php');
     }
 
+    protected function setup() {
+        global $CFG;
+        parent::setUp();
+
+        autoloader::register();
+
+        require_once($CFG->libdir . '/tests/fixtures/testable_core_h5p.php');
+    }
+
     /**
      * Test task execution
      *

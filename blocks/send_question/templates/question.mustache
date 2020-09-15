@@ -1,0 +1,26 @@
+<div class="card">
+    <div class="card-header">
+        Title: {{subject}}
+    </div>
+    <div class="card-body">
+        <blockquote class="blockquote mb-0">
+            {{{question}}}
+        <footer class="blockquote-footer">{{name_student}} <cite title="Date Create">{{time_created}}</cite></footer>
+        </blockquote>
+    </div>
+</div>
+<br>
+{{^hide_response}}
+<div class="card">
+    <div class="card-header">
+        Response
+    </div>
+    <div class="card-body">
+        <blockquote class="blockquote mb-0">
+            {{{response}}}
+        <footer class="blockquote-footer"> {{name_instructor}} <cite title="Date Response">{{time_response}}</cite></footer>
+        </blockquote>
+    </div>
+</div>
+<br>
+{{/hide_response}}

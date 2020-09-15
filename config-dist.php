@@ -1,50 +1,17 @@
 <?php
-///////////////////////////////////////////////////////////////////////////
-//                                                                       //
-// Moodle configuration file                                             //
-//                                                                       //
-// This file should be renamed "config.php" in the top-level directory   //
-//                                                                       //
-///////////////////////////////////////////////////////////////////////////
-//                                                                       //
-// NOTICE OF COPYRIGHT                                                   //
-//                                                                       //
-// Moodle - Modular Object-Oriented Dynamic Learning Environment         //
-//          http://moodle.org                                            //
-//                                                                       //
-// Copyright (C) 1999 onwards  Martin Dougiamas  http://moodle.com       //
-//                                                                       //
-// This program is free software; you can redistribute it and/or modify  //
-// it under the terms of the GNU General Public License as published by  //
-// the Free Software Foundation; either version 3 of the License, or     //
-// (at your option) any later version.                                   //
-//                                                                       //
-// This program is distributed in the hope that it will be useful,       //
-// but WITHOUT ANY WARRANTY; without even the implied warranty of        //
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         //
-// GNU General Public License for more details:                          //
-//                                                                       //
-//          http://www.gnu.org/copyleft/gpl.html                         //
-//                                                                       //
-///////////////////////////////////////////////////////////////////////////
-unset($CFG);  // Ignore this line
-global $CFG;  // This is necessary here for PHPUnit execution
+
+unset($CFG); 
+global $CFG;
 $CFG = new stdClass();
 
-//=========================================================================
-// 1. DATABASE SETUP
-//=========================================================================
-// First, you need to configure the database where all Moodle data       //
-// will be stored.  This database must already have been created         //
-// and a username/password created to access it.                         //
+$CFG->dbtype    = trim(getenv('MOODLE_DB_TYPE'));
+$CFG->dblibrary = getenv('MOODLE_DB_LIBRARY');
+$CFG->dbhost    = getenv('MOODLE_DB_HOST');
+$CFG->dbname    = getenv('MOODLE_DB_NAME');
+$CFG->dbuser    = getenv('MOODLE_DB_USER');
+$CFG->dbpass    = getenv('MOODLE_DB_PASSWORD');
 
-$CFG->dbtype    = 'pgsql';      // 'pgsql', 'mariadb', 'mysqli', 'sqlsrv' or 'oci'
-$CFG->dblibrary = 'native';     // 'native' only at the moment
-$CFG->dbhost    = 'localhost';  // eg 'localhost' or 'db.isp.com' or IP
-$CFG->dbname    = 'moodle';     // database name, eg moodle
-$CFG->dbuser    = 'username';   // your database username
-$CFG->dbpass    = 'password';   // your database password
-$CFG->prefix    = 'mdl_';       // prefix to use for all table names
+$CFG->prefix    = 'mdl_';
 $CFG->dboptions = array(
     'dbpersist' => false,       // should persistent database connections be
                                 //  used? set to 'false' for the most stable
@@ -120,50 +87,14 @@ $CFG->dboptions = array(
 // For all database config settings see https://docs.moodle.org/en/Database_settings
 );
 
-
-//=========================================================================
-// 2. WEB SITE LOCATION
-//=========================================================================
-// Now you need to tell Moodle where it is located. Specify the full
-// web address to where moodle has been installed.  If your web site
-// is accessible via multiple URLs then choose the most natural one
-// that your students would use.  Do not include a trailing slash
-//
-// If you need both intranet and Internet access please read
-// http://docs.moodle.org/en/masquerading
-
-$CFG->wwwroot   = 'http://example.com/moodle';
-
-
-//=========================================================================
-// 3. DATA FILES LOCATION
-//=========================================================================
-// Now you need a place where Moodle can save uploaded files.  This
-// directory should be readable AND WRITEABLE by the web server user
-// (usually 'nobody' or 'apache'), but it should not be accessible
-// directly via the web.
-//
-// - On hosting systems you might need to make sure that your "group" has
-//   no permissions at all, but that "others" have full permissions.
-//
-// - On Windows systems you might specify something like 'c:\moodledata'
-
-$CFG->dataroot  = '/home/example/moodledata';
-
-
-//=========================================================================
-// 4. DATA FILES PERMISSIONS
-//=========================================================================
-// The following parameter sets the permissions of new directories
-// created by Moodle within the data directory.  The format is in
-// octal format (as used by the Unix utility chmod, for example).
-// The default is usually OK, but you may want to change it to 0750
-// if you are concerned about world-access to the files (you will need
-// to make sure the web server process (eg Apache) can access the files.
-// NOTE: the prefixed 0 is important, and don't use quotes.
-
+$CFG->wwwroot   = getenv('MOODLE_URL');
+$CFG->dataroot  = getenv('MOODLE_DATA_PATH');
 $CFG->directorypermissions = 02777;
+$CFG->admin =  getenv('MOODLE_ADMIN'); 
 
+if(filter_var(getenv('MOODLE_REVERSE_LB'),FILTER_VALIDATE_BOOLEAN)){
+  $CFG->reverseproxy = true;
+}
 
 //=========================================================================
 // 5. DIRECTORY LOCATION  (most people can just ignore this setting)
@@ -1062,5 +993,4 @@ $CFG->admin = 'admin';
 
 require_once(__DIR__ . '/lib/setup.php'); // Do not edit
 
-// There is no php closing tag in this file,
-// it is intentional because it prevents trailing whitespace problems!
+require_once(dirname(__FILE__) . '/lib/setup.php');

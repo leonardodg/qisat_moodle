@@ -184,7 +184,6 @@ if ($editform->is_cancelled()) {
             if ($data->allocateby != 'no') {
                 $unames = array();
                 foreach ($group['members'] as $user) {
-                    $fullname = fullname($user, $viewfullnames);
                     if ($extrafields) {
                         $extrafieldsdisplay = [];
                         foreach ($extrafields as $field) {
@@ -195,9 +194,6 @@ if ($editform->is_cancelled()) {
 
                     $unames[] = $fullname;
                 }
-                $line[] = implode(', ', $unames);
-                $line[] = count($group['members']);
-            }
             $table->data[] = $line;
         }
 

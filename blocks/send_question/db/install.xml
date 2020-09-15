@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/send_question/db" VERSION="20200805" COMMENT="XMLDB file for Moodle blocks/send_question"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="block_send_question" COMMENT="Table block_send_question from Question Sent from Block Send Question">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="question from course"/>
+        <FIELD NAME="instanceid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="block from question"/>
+        <FIELD NAME="categoryid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="category from question"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="question sent by user"/>
+        <FIELD NAME="title" TYPE="char" LENGTH="200" NOTNULL="true" SEQUENCE="false" COMMENT="title from question"/>
+        <FIELD NAME="question" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="text from question"/>
+        <FIELD NAME="response" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="text answer"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Data the question was sent"/>
+        <FIELD NAME="timeresponse" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="response date"/>
+        <FIELD NAME="useridresponse" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="answered by user ID"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="block_send_question_user" COMMENT="Table block_send_question_user Block Send Question">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="instanceid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="instance from block"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="question sent by user"/>
+        <FIELD NAME="categoryid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="category from question"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Datacreated"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="block_send_question_category" COMMENT="Table Category from Questions sent - block_send_question">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Category belong to a course"/>
+        <FIELD NAME="instanceid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Category belong to a course"/>
+        <FIELD NAME="title" TYPE="char" LENGTH="200" NOTNULL="true" SEQUENCE="false" COMMENT="Title from category"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="description from category"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Data Created from category"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Data modified from Category"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>

@@ -169,7 +169,13 @@ class main implements renderable, templatable {
         $config = get_config('block_myoverview');
 
         // Build the course grouping option name to check if the given grouping is enabled afterwards.
-        $groupingconfigname = 'displaygrouping'.$grouping;
+        if ($grouping === 'favourites') {
+            // There was a mismatch in parts of block between the name starred and favourites. This helps fix that.
+            $groupingconfigname = 'displaygroupingstarred';
+        } else {
+            $groupingconfigname = 'displaygrouping'.$grouping;
+        }
+
         // Check the given grouping and remember it if it is enabled.
         if ($grouping && $config->$groupingconfigname == true) {
             $this->grouping = $grouping;

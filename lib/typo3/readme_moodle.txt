@@ -10,7 +10,6 @@ Procedure:
 
 Local changes (to verify/apply with new imports):
 
-- MDL-67316: PHP 7.4 compatibility. Wrong chars in hexdec() operations.
     Ensure that all the calls to hexdec() are passing exclusively
     correct hex chars. Before php74 they were silently discarded but
     with php74 a deprecation warning is produced. We haven't looked how
@@ -18,8 +17,6 @@ Local changes (to verify/apply with new imports):
     library from core (see MDL-65809)
 
 - MDL-67017: PHP 7.4 compatibility. Curly brackets.
-    Remove all the deprecated curly bracket uses {} to access to strings/arrays
-    by key. We haven't looked how this is fixed upstream because plans include
     to remove this library from core (see MDL-65809)
 
 - MDL-63967: PHP 7.3 compatibility.
