@@ -184,7 +184,7 @@ if ($returnto === 'profile') {
         $returnurl = new moodle_url('/user/profile.php', array('id' => $user->id));
     }
 } else {
-    $returnurl = new moodle_url('/user/preferences.php', array('userid' => $user->id));
+    $returnurl = new moodle_url('/my/');
 }
 
 if ($userform->is_cancelled()) {
