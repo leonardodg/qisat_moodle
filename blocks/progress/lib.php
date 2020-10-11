@@ -605,6 +605,7 @@ function block_progress_monitorable_modules() {
             ),
             'defaultAction' => 'attempted'
         ),
+        'label' => array(),
         'lesson' => array(
             'defaultTime' => 'deadline',
             'actions' => array(
