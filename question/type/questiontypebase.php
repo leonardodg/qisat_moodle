@@ -328,9 +328,6 @@ class question_type {
         // The actual update/insert done with multiple DB access, so we do it in a transaction.
         $transaction = $DB->start_delegated_transaction ();
 
-        // The actuall update/insert done with multiple DB access, so we do it in a transaction.
-        $transaction = $DB->start_delegated_transaction ();
-
         list($question->category) = explode(',', $form->category);
         $context = $this->get_context_by_category_id($question->category);
 
