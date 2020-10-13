@@ -64,9 +64,6 @@ $blocks-plus-gutter: $blocks-column-width + ( $grid-gutter-width / 2 );
         justify-content: flex-end;
     }
 }
-        display: block;
-    }
-}
 
 .header-action {
     #region-main-settings-menu {
