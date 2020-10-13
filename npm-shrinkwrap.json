@@ -5933,13 +5933,6 @@
           "dev": true,
           "optional": true
         },
-        "node-uuid": {
-          "version": "1.4.8",
-          "resolved": "https://registry.npmjs.org/node-uuid/-/node-uuid-1.4.8.tgz",
-          "integrity": "sha1-sEDrCSOWivq/jTL7HxfxFn/auQc=",
-          "dev": true,
-          "optional": true
-        },
         "oauth-sign": {
           "version": "0.3.0",
           "resolved": "https://registry.npmjs.org/oauth-sign/-/oauth-sign-0.3.0.tgz",
@@ -6356,9 +6349,9 @@
       "dev": true
     },
     "neo-async": {
-      "version": "2.6.1",
-      "resolved": "https://registry.npmjs.org/neo-async/-/neo-async-2.6.1.tgz",
-      "integrity": "sha512-iyam8fBuCUpWeKPGpaNMetEocMt364qkCsfL9JuhjXX6dRnguRVOfk2GZaDpPjcOKiiXCPINZC1GczQ7iTq3Zw==",
+      "version": "2.6.2",
+      "resolved": "https://registry.npmjs.org/neo-async/-/neo-async-2.6.2.tgz",
+      "integrity": "sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==",
       "dev": true
     },
     "nice-try": {
@@ -6471,6 +6464,13 @@
           }
         }
       }
+    },
+    "node-uuid": {
+      "version": "1.4.8",
+      "resolved": "https://registry.npmjs.org/node-uuid/-/node-uuid-1.4.8.tgz",
+      "integrity": "sha1-sEDrCSOWivq/jTL7HxfxFn/auQc=",
+      "dev": true,
+      "optional": true
     },
     "nopt": {
       "version": "3.0.6",
