@@ -44,6 +44,7 @@ $string['hotpot'] = 'Hot Potatoes';
 $string['hsuforum'] = 'Advanced Forum';
 $string['imscp'] = 'IMS Content Package';
 $string['journal'] = 'Journal';
+$string['label'] = 'Label';
 $string['lesson'] = 'Lesson';
 $string['lti'] = 'External tool';
 $string['ouwiki'] = 'OU Wiki';
