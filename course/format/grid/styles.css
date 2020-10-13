@@ -491,9 +491,6 @@ body.jsenabled #gridshadebox_content.hide_content {
 .course-content ul.gridicons li .image_holder.inaccessible {
     background-color: #999;
     border-color: #aaa;
-    filter: grayscale(100%);
-    filter: gray; /* IE 6-9 */
-    filter: alpha(opacity=70);
     opacity: 0.7;
 }
 /* @end */

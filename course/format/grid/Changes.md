@@ -1,5 +1,19 @@
 History
 =============
+Version 3.9.0.1 - TDB
+  1. Apply MDL-65539.
+  2. Apply MDL-68231.
+  3. Apply MDL-68235.
+  4. Apply MDL-69065.
+  5. Apply 'Add index to courseid format_grid_icon could improve performance' - #122,
+     thanks to John (https://github.com/yao9394) for the patch.
+
+Version 3.8.0.2 - TDB
+  1. Fix 'Same color setting for "set or change img" as currentselectedimagecontainertextcolor in editing on' - #106.
+  2. Fix scroll bar in main region when editing in Boost.
+  3. Remove redundant 'defaultcoursedisplay' setting - #119.
+  4. Tidy up old strings.
+
 Version 3.8.0.1 - 17/11/2019
   1. Fix section one not shown - #105.
   2. Moodle 3.8 version based on V3.7.1.1.
