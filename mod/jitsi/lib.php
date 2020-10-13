@@ -50,6 +50,8 @@ function jitsi_supports($feature) {
             return true;
         case FEATURE_BACKUP_MOODLE2:
             return true;
+        case FEATURE_COMPLETION_TRACKS_VIEWS: 
+            return true;
         default:
             return null;
     }
@@ -178,4 +180,23 @@ function jitsi_delete_instance($id) {
     }
 
     return $result;
+}
+
+function jitsi_view($course, $cm) {
+    $completion = new completion_info($course);
+    $completion->set_module_viewed($cm);
+}
+
+function jitsi_get_coursemodule_info($coursemodule) {
+    global $CFG, $DB;
+
+    $jitsi = $DB->get_record('jitsi', array('id'=>$coursemodule->instance),'display');
+
+    $info = new cached_cm_info();
+    if ($jitsi->display == RESOURCELIB_DISPLAY_NEW) {
+        $fullurl = "$CFG->wwwroot/mod/jitsi/view.php?id=$coursemodule->id&amp;redirect=1";
+        $info->onclick = "window.open('$fullurl'); return false;";
+    }
+
+    return $info;
 }

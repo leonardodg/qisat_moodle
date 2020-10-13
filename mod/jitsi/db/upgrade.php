@@ -162,5 +162,20 @@ function xmldb_jitsi_upgrade($oldversion) {
      *
      * Finally, return of upgrade result (true, all went good) to Moodle.
      */
+
+
+    if ($oldversion < 2020100501) {
+
+        $table = new xmldb_table('jitsi');
+
+        // Define display appearance
+        $field = new xmldb_field('display', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, 3, 'introformat');
+        
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2020100501, 'jitsi');
+    }
     return true;
 }

@@ -28,6 +28,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/course/moodleform_mod.php');
+require_once($CFG->dirroot.'/mod/url/locallib.php');
 
 /**
  * Jitsi settings form.
@@ -44,6 +45,8 @@ class mod_jitsi_mod_form extends moodleform_mod {
     public function definition() {
         global $CFG;
         $mform = $this->_form;
+        $config = get_config('jitsi');
+
         $mform->addElement('header', 'general', get_string('general', 'form'));
         $mform->addElement('text', 'name', get_string('jitsiname', 'jitsi'), array('size' => '64'));
         if (!empty($CFG->formatstringstriptags)) {
@@ -72,6 +75,13 @@ class mod_jitsi_mod_form extends moodleform_mod {
         );
         $mform->addElement('select', 'minpretime', get_string('minpretime', 'jitsi'), $choicesminspre);
         $mform->disabledIf('minpretime', 'timeopen[enabled]');
+
+        $mform->addElement('header', 'optionssection', get_string('appearance'));
+        $displayoptions = resourcelib_get_displayoptions(array(RESOURCELIB_DISPLAY_OPEN, RESOURCELIB_DISPLAY_NEW));
+        $mform->addElement('select', 'display', get_string('displayselect', 'url'), $displayoptions);
+        $mform->setDefault('display', $config->display);
+        $mform->addHelpButton('display', 'displayselect', 'url');
+
         $this->standard_coursemodule_elements();
         $this->add_action_buttons();
     }

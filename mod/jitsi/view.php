@@ -44,6 +44,10 @@ if ($id) {
     print_error('missingparam');
 }
 require_login($course, true, $cm);
+
+// Completion mod course.
+jitsi_view($course, $cm);
+
 $event = \mod_jitsi\event\course_module_viewed::create(array(
   'objectid' => $PAGE->cm->instance,
   'context' => $PAGE->context,
@@ -54,8 +58,7 @@ $event->trigger();
 $PAGE->set_url('/mod/jitsi/view.php', array('id' => $cm->id));
 $PAGE->set_title(format_string($jitsi->name));
 $PAGE->set_heading(format_string($course->fullname));
-echo $OUTPUT->header();
-echo $OUTPUT->heading($jitsi->name);
+
 $context = context_module::instance($cm->id);
 if (!has_capability('mod/jitsi:view', $context)) {
     notice(get_string('noviewpermission', 'jitsi'));
@@ -68,9 +71,6 @@ $roles = get_user_roles($context, $USER->id);
 $rolestr[] = null;
 foreach ($roles as $role) {
     $rolestr[] = $role->shortname;
-}
-if ($jitsi->intro) {
-    echo $OUTPUT->box(format_module_intro('jitsi', $jitsi, $cm->id), 'generalbox mod_introbox', 'jitsiintro');
 }
 
 $moderation = false;
@@ -88,6 +88,9 @@ switch ($CFG->jitsi_id) {
         break;
     case 'alias':
         break;
+    case 'usernameandidnumber':
+        $nom = $USER->firstname.' '.$USER->lastname.' - '.$USER->idnumber;
+        break;
 }
 $sessionoptionsparam = ['$course->shortname', '$jitsi->id', '$jitsi->name'];
 $fieldssessionname = $CFG->jitsi_sesionname;
@@ -97,6 +100,7 @@ $max = count($allowed);
 
 $sesparam = '';
 $optionsseparator = ['.', '-', '_', ''];
+
 for ($i = 0; $i < $max; $i++) {
     if ($i != $max - 1) {
         if ($allowed[$i] == 0) {
@@ -119,18 +123,35 @@ for ($i = 0; $i < $max; $i++) {
 
 $avatar = $CFG->wwwroot.'/user/pix.php/'.$USER->id.'/f1.jpg';
 $urlparams = array('avatar' => $avatar, 'nom' => $nom, 'ses' => $sesparam,
-    'courseid' => $course->id, 'cmid' => $id, 't' => $moderation);
+    'courseid' => $course->id, 'cmid' => $id, 't' => $moderation, 
+    'idnumber' => $USER->idnumber);
 
 $today = getdate();
-if ($today[0] > (($jitsi->timeopen) - ($jitsi->minpretime * 60))||
-    (in_array('editingteacher', $rolestr) == 1)) {
-    echo $OUTPUT->box(get_string('instruction', 'jitsi'));
-    echo $OUTPUT->single_button(new moodle_url('/mod/jitsi/session.php', $urlparams), get_string('access', 'jitsi'), 'post');
-} else {
-    echo $OUTPUT->box(get_string('nostart', 'jitsi', $jitsi->minpretime));
+
+$redirectToMeed = trim($jitsi->intro) == '';
+$startMeet = ($today[0] > (($jitsi->timeopen) - ($jitsi->minpretime * 60)) || 
+             (in_array('editingteacher', $rolestr) == 1));
+
+
+if($redirectToMeed && $startMeet){
+    redirect(new moodle_url('/mod/jitsi/session.php', $urlparams));
+}else{
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading($jitsi->name);
+
+    if (!$redirectToMeed) {
+        echo $OUTPUT->box(format_module_intro('jitsi', $jitsi, $cm->id), 'generalbox mod_introbox', 'jitsiintro');
+    }
+
+    if ($startMeet) {
+        echo $OUTPUT->box(get_string('instruction', 'jitsi'));
+        echo $OUTPUT->single_button(new moodle_url('/mod/jitsi/session.php', $urlparams), get_string('access', 'jitsi'), 'post');
+    } else {
+        echo $OUTPUT->box(get_string('nostart', 'jitsi', $jitsi->minpretime));
+    }
+    echo $CFG->jitsi_help;
+    echo $OUTPUT->footer();
 }
-echo $CFG->jitsi_help;
-echo $OUTPUT->footer();
 
 /**
  * Sanitize strings
@@ -144,7 +165,7 @@ function string_sanitize($string, $forcelowercase = true, $anal = false) {
             "'", "&#8216;", "&#8217;", "&#8220;", "&#8221;", "&#8211;", "&#8212;",
             "â€”", "â€“", ",", "<", ".", ">", "/", "?");
     $clean = trim(str_replace($strip, "", strip_tags($string)));
-    $clean = preg_replace('/\s+/', "-", $clean);
+    $clean = preg_replace('/\s+/', $CFG->jitsi_separator, $clean);
     $clean = ($anal) ? preg_replace("/[^a-zA-Z0-9]/", "", $clean) : $clean;
     return ($forcelowercase) ?
         (function_exists('mb_strtolower')) ?

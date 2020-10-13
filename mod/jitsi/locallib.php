@@ -26,6 +26,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+require_once("$CFG->libdir/resourcelib.php");
 
 /**
  * Update the calendar entries for this jitsi instance.
