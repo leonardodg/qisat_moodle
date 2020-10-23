@@ -22,4 +22,4 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['dataprefquestion'] = '<p>Para tornar este site mais fácil de usar, armazenamos informações funcionais em seu navegador, como o conteúdo do último bloco que você abriu. Ele permanecerá em sua máquina por um breve período, caso você visite essa página novamente. Não o usamos para rastreamento. Tudo bem?</p><p>Lembraremos sua escolha até que você limpe seu histórico de navegação. Dizer "Não" pode resultar em tempos de carregamento de página mais lentos.</p>';
+$string['dataprefquestion'] = '<p>Para tornar este site mais fácil de usar, armazenamos informações funcionais em seu navegador, como o conteúdo do último bloco que você abriu. Ele permanecerá em sua máquina por um breve período, caso você visite essa página novamente. Não o usamos para rastreamento. Tudo bem?</p><p>Lembraremos sua escolha até que você limpe seu histórico de navegação. Dizer "Cancelar" pode resultar em tempos de carregamento de página mais lentos.</p>';
