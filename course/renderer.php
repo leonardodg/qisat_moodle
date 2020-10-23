@@ -1237,7 +1237,8 @@ class core_course_renderer extends plugin_renderer_base {
     protected function course_summary(coursecat_helper $chelper, core_course_list_element $course): string {
         $content = '';
         if ($course->has_summary()) {
-            $content .= html_writer::start_tag('div', ['class' => 'summary']);
+            $content .= html_writer::start_tag('div', ['class' => 'summary', 
+                'style' => 'float:none;padding-top:25px;']);
             $content .= $chelper->get_course_formatted_summary($course,
                 array('overflowdiv' => true, 'noclean' => true, 'para' => false));
             $content .= html_writer::end_tag('div');
