@@ -90,8 +90,17 @@ certificate_print_image($pdf, $certificate, CERT_IMAGE_SIGNATURE, $sigx, $sigy, 
 
 // Add text
 $pdf->SetTextColor(20, 20, 20);
-certificate_print_text($pdf, $x, $y + 60, 'C', $fontsans, 'I', 30, fullname($USER));
-certificate_print_text($pdf, $x, $y + 82, 'C', $fontsans, 'B', 12, format_string($course->fullname));
+certificate_print_text($pdf, $x, $y + 59, 'C', $fontsans, 'I', 30, fullname($USER));
+certificate_print_text($pdf, $x, $y + 81.7, 'C', $fontsans, 'B', 12, format_string($course->fullname));
+
+// Data de conclusão do curso
+$sql = "SELECT MAX(c.timecompleted) as timecompleted
+                  FROM {course_completions} c
+                 WHERE c.userid = :userid
+                   AND c.course = :courseid";
+$timecompleted = $DB->get_record_sql($sql, array('userid' => $USER->id, 'courseid' => $course->id));
+certificate_print_text($pdf, $x + 35, $y + 103, 'L', $fontsans, '', 16, strftime('%d/%I/%Y', $timecompleted->timecompleted));
+
 certificate_print_text($pdf, $x, $y + 92, 'C', $fontsans, '', 14,  certificate_get_date($certificate, $certrecord, $course));
 certificate_print_text($pdf, $x, $y + 102, 'C', $fontserif, '', 10, certificate_get_grade($certificate, $course));
 certificate_print_text($pdf, $x, $y + 112, 'C', $fontserif, '', 10, certificate_get_outcome($certificate, $course));
