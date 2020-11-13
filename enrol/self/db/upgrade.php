@@ -45,5 +45,58 @@ function xmldb_enrol_self_upgrade($oldversion) {
     // Automatically generated Moodle v3.8.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if ($oldversion < 2020111300) {
+        $message = new stdClass();
+        $message->name      = 'start_notification';
+        $message->component = 'enrol_self';
+        $DB->insert_record('message_providers', $message);
+
+        $config = $DB->get_record('config_plugins', array('plugin'=>'enrol_self', 'name'=>'startthreshold'));
+        $config->value = 432000;
+        $DB->update_record('config_plugins', $config);
+
+        $configs = array(
+            array(
+                'plugin' => 'enrol_self',
+                'name'   => 'enablenotifyexpiry',
+                'value'  => 1
+            ),
+            array(
+                'plugin' => 'message',
+                'name'   => 'message_provider_enrol_self_start_notification_loggedoff',
+                'value'  => 'email'
+            ),
+            array(
+                'plugin' => 'message',
+                'name'   => 'message_provider_enrol_self_start_notification_loggedin',
+                'value'  => 'email'
+            ),
+            array(
+                'plugin' => 'message',
+                'name'   => 'popup_provider_enrol_self_start_notification_permitted',
+                'value'  => 'permitted'
+            ),
+            array(
+                'plugin' => 'message',
+                'name'   => 'email_provider_enrol_self_start_notification_permitted',
+                'value'  => 'permitted'
+            ),
+            array(
+                'plugin' => 'message',
+                'name'   => 'jabber_provider_enrol_self_start_notification_permitted',
+                'value'  => 'permitted'
+            ),
+            array(
+                'plugin' => 'message',
+                'name'   => 'airnotifier_provider_enrol_self_start_notification_permitted',
+                'value'  => 'permitted'
+            )
+        );
+        
+        $DB->insert_records('config_plugins', $configs);
+
+        upgrade_plugin_savepoint(true, 2020111300, 'enrol', 'self');
+    }
+
     return true;
 }
