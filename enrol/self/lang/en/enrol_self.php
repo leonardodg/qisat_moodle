@@ -59,12 +59,13 @@ $string['expirymessageenrollerbody'] = 'Self enrolment in the course \'{$a->cour
 {$a->users}
 
 To extend their enrolment, go to {$a->extendurl}';
-$string['expirymessageenrolledsubject'] = 'Self enrolment expiry notification';
+$string['expirymessageenrolledsubject'] = 'Last Days of Access to the Course';
 $string['expirymessageenrolledbody'] = 'Dear {$a->user},
 
-This is a notification that your enrolment in the course \'{$a->course}\' is due to expire on {$a->timeend}.
+Your {$a->course} access term will end in {$a->remainingdays} days. Take advantage of those last days to complete the course.
 
-If you need help, please contact {$a->enroller}.';
+Do not forget to issue your certificate, for that it is necessary to attend classes, carry out activities and research.';
+
 $string['expirynotifyall'] = 'Teacher and enrolled user';
 $string['expirynotifyenroller'] = 'Teacher only';
 $string['groupkey'] = 'Use group enrolment keys';
@@ -124,3 +125,25 @@ If you have not done so already, you should edit your profile page so that we ca
 
   {$a->profileurl}';
 $string['privacy:metadata'] = 'The Self enrolment plugin does not store any personal data.';
+
+$string['startnotifyhour'] = 'Hour to send enrolment start course notifications';
+$string['startthreshold'] = 'Course initiated notification threshold';
+$string['startthreshold_help'] = 'How long before the start of registration should users be notified?';
+$string['sendstartnotificationstask'] = "ABDI Enrolment send start course notifications task";
+$string['enablenotifystart'] = 'Enable/Disable send start course notifications task';
+$string['startmessageenrolledsubject'] = 'Course Started';
+$string['startmessageenrolledbody'] = 'Dear {$a->user},
+
+Your {$a->course} access term started {$a->firstday} days ago on {$a->timestart} and will end on {$a->remainingdays} days on {$a->timeend}. Take advantage of this remaining time to complete the course.
+
+Below are information that can help you:
+
+Support material: the course provides a complete handout on the classes for download.
+
+Clarification of doubts: the platform provides a forum for technical doubts where, in addition to the possibility of interacting with other students, the teacher will make weekly interactions on the main topics created. If you need a more individualized contact and are having doubts about access, certificate or any problem involving the EaD platform, we have a support chat called HelpDesk to help you.
+
+Do not forget to issue your certificate, for that it is necessary to attend classes, carry out activities and research.
+
+Good study!';
+
+$string['expirynotifyhour'] = 'Hour to send enrolment expiry notifications';

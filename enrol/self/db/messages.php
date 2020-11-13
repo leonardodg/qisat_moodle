@@ -24,6 +24,7 @@
 
 $messageproviders = array (
 
+    'start_notification' => array(),
     'expiry_notification' => array(),
 
 );
