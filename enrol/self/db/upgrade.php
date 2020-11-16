@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 function xmldb_enrol_self_upgrade($oldversion) {
-    global $CFG;
+    global $CFG, $DB;
 
     // Automatically generated Moodle v3.5.0 release upgrade line.
     // Put any upgrade step following this.
