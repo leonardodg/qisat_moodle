@@ -227,6 +227,11 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
         }
 
         $urltogo = core_login_get_return_url();
+	
+	if($urltogo=='https://eadbim.abdi.com.br/'){
+	  $urltogo .= 'my/';
+	}
+	//$urltogo .= 'my/';
 
     /// check if user password has expired
     /// Currently supported only for ldap-authentication module
@@ -361,6 +366,7 @@ if (!empty($SESSION->loginerrormsg)) {
     redirect(new moodle_url('/login/index.php'));
 }
 
+$PAGE->requires->js(new moodle_url('https://cdn.wishpond.net/connect.js?merchantId=1504988&amp;writeKey=f3bbc6bab77f'));
 $PAGE->set_title("$site->fullname: $loginsite");
 $PAGE->set_heading("$site->fullname");
 
@@ -368,6 +374,10 @@ echo $OUTPUT->header();
 
 if (isloggedin() and !isguestuser()) {
     // prevent logging when already logged in, we do not want them to relogin by accident because sesskey would be changed
+
+    redirect(new moodle_url('/index.php'));
+    die;
+
     echo $OUTPUT->box_start();
     $logout = new single_button(new moodle_url('/login/logout.php', array('sesskey'=>sesskey(),'loginpage'=>1)), get_string('logout'), 'post');
     $continue = new single_button(new moodle_url('/'), get_string('cancel'), 'get');

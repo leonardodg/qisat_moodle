@@ -115,6 +115,7 @@ if (isguestuser()) {     // Guests can never edit their profile.
 // Start setting up the page.
 $strpublicprofile = get_string('publicprofile');
 
+$PAGE->requires->js(new moodle_url('https://cdn.wishpond.net/connect.js?merchantId=1504988&amp;writeKey=f3bbc6bab77f'));
 $PAGE->blocks->add_region('content');
 $PAGE->set_subpage($currentpage->id);
 $PAGE->set_title(fullname($user).": $strpublicprofile");

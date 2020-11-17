@@ -97,6 +97,7 @@ if ($mform_signup->is_cancelled()) {
 $newaccount = get_string('newaccount');
 $login      = get_string('login');
 
+$PAGE->requires->js(new moodle_url('https://cdn.wishpond.net/connect.js?merchantId=1504988&amp;writeKey=f3bbc6bab77f'));
 $PAGE->navbar->add($login);
 $PAGE->navbar->add($newaccount);
 
