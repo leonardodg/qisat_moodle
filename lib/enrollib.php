@@ -3045,10 +3045,12 @@ abstract class enrol_plugin {
         $context = context_course::instance($ue->courseid);
 
         $a = new stdClass();
-        $a->course   = format_string($ue->fullname, true, array('context'=>$context));
-        $a->user     = fullname($user, true);
-        $a->timeend  = userdate($ue->timeend, '', $user->timezone);
-        $a->enroller = fullname($enroller, has_capability('moodle/site:viewfullnames', $context, $user));
+        $a->user          = fullname($user, true);
+        $a->course        = format_string($ue->fullname, true, array('context'=>$context));
+        $a->remainingdays = intval(($ue->timeend - time()) / 86400);
+
+        //$a->timeend  = userdate($ue->timeend, '', $user->timezone);
+        //$a->enroller = fullname($enroller, has_capability('moodle/site:viewfullnames', $context, $user));
 
         $subject = get_string('expirymessageenrolledsubject', 'enrol_'.$name, $a);
         $body = get_string('expirymessageenrolledbody', 'enrol_'.$name, $a);

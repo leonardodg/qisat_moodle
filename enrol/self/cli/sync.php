@@ -71,6 +71,7 @@ if (empty($options['verbose'])) {
 $plugin = enrol_get_plugin('self');
 
 $result = $plugin->sync($trace, null);
+$plugin->send_start_notifications($trace);
 $plugin->send_expiry_notifications($trace);
 
 exit($result);

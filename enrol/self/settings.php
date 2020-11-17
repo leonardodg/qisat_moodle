@@ -48,11 +48,21 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('enrol_self/expiredaction', get_string('expiredaction', 'enrol_self'), get_string('expiredaction_help', 'enrol_self'), ENROL_EXT_REMOVED_KEEP, $options));
 
     $options = array();
-    for ($i=0; $i<24; $i++) {
+    for ($i=0; $i<32; $i++) {
         $options[$i] = $i;
     }
-    $settings->add(new admin_setting_configselect('enrol_self/expirynotifyhour', get_string('expirynotifyhour', 'core_enrol'), '', 6, $options));
+    $settings->add(new admin_setting_configselect('enrol_self/expirynotifyhour', get_string('expirynotifyhour', 'enrol_self'), '', 10, $options));
 
+
+    $settings->add(new admin_setting_configselect('enrol_self/startnotifyhour', get_string('startnotifyhour', 'enrol_self'), '', 10, $options));
+/*    
+    $settings->add(new admin_setting_configcheckbox('enrol_self/enablenotifystart',
+        get_string('enablenotifystart', 'enrol_self'), '', 1));
+
+    $settings->add(new admin_setting_configduration('enrol_self/startthreshold',
+        get_string('startthreshold', 'enrol_self'), get_string('startthreshold_help', 'enrol_self'), 86400, 86400)); // 1 day 
+*/
+    
     //--- enrol instance defaults ----------------------------------------------------------------------------
     $settings->add(new admin_setting_heading('enrol_self_defaults',
         get_string('enrolinstancedefaults', 'admin'), get_string('enrolinstancedefaults_desc', 'admin')));
