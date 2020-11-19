@@ -51,15 +51,46 @@ function xmldb_enrol_self_upgrade($oldversion) {
         $message->component = 'enrol_self';
         $DB->insert_record('message_providers', $message);
 
-        $config = $DB->get_record('config_plugins', array('plugin'=>'enrol_self', 'name'=>'startthreshold'));
-        $config->value = 432000;
-        $DB->update_record('config_plugins', $config);
-
         $configs = array(
             array(
                 'plugin' => 'enrol_self',
                 'name'   => 'enablenotifyexpiry',
                 'value'  => 1
+            ),
+            array(
+                'plugin' => 'enrol_self',
+                'name'   => 'startnotifylast',
+                'value'  => 1605300040
+            ),
+            array(
+                'plugin' => 'enrol_self',
+                'name'   => 'startnotifyday',
+                'value'  => 10
+            ),
+            array(
+                'plugin' => 'enrol_self',
+                'name'   => 'expirynotifyday',
+                'value'  => 10
+            ),
+            array(
+                'plugin' => 'enrol_self',
+                'name'   => 'expirynotifylast',
+                'value'  => 1605300036
+            ),
+            array(
+                'plugin' => 'enrol_self',
+                'name'   => 'startthreshold',
+                'value'  => 432000
+            ),
+            array(
+                'plugin' => 'enrol_self',
+                'name'   => 'enablenotifystart',
+                'value'  => 1
+            ),
+            array(
+                'plugin' => 'enrol_self',
+                'name'   => 'startnotifyhour',
+                'value'  => 6
             ),
             array(
                 'plugin' => 'message',
