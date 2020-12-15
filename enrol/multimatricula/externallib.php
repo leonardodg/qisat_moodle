@@ -97,12 +97,16 @@ class WscMatricula extends external_api {
         }catch(Exception $e){
             if($course === false){
                 $retorno['mensagem'] = get_string('curso_nao_encontrado', 'enrol_multimatricula');
+                $retorno['erro'] = 2;
             }elseif($instance === false){
                 $retorno['mensagem'] = get_string('inscricao_nao_definida', 'enrol_multimatricula');
+                $retorno['erro'] = 3;
             }elseif($usuario === false){
                 $retorno['mensagem'] = get_string('usuario_nao_encontrado', 'enrol_multimatricula');
+                $retorno['erro'] = 4;
             }else{
                 $retorno['mensagem'] = $e->getMessage();
+                $retorno['erro'] = 1;
             }
         }
 
@@ -195,15 +199,22 @@ class WscMatricula extends external_api {
                     $retorno = ['sucesso' => true, 'mensagem' => get_string('prorrogacao_efetuada_com_sucesso', 'enrol_multimatricula')];
                 }else{
                     $retorno['mensagem'] = get_string('data_invalida', 'enrol_multimatricula');
+                    $retorno['erro'] = 5;
                 }
             }else{
                 $retorno['mensagem'] = get_string('matricula_nao_encontrada', 'enrol_multimatricula');
+                $retorno['erro'] = 3;
             }
-        }catch(Exception $e){
+        }catch(Exception $e){            
             if($course === false){
                 $retorno['mensagem'] = get_string('curso_nao_encontrado', 'enrol_multimatricula');
+                $retorno['erro'] = 2;
             }elseif($usuario === false){
                 $retorno['mensagem'] = get_string('usuario_nao_encontrado', 'enrol_multimatricula');
+                $retorno['erro'] = 4;
+            }else{
+                $retorno['mensagem'] = $e->getMessage();
+                $retorno['erro'] = 1;
             }
         }
 
