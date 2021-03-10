@@ -3050,7 +3050,8 @@ abstract class enrol_plugin {
         $a->remainingdays = intval(($ue->timeend - time()) / 86400);
 
         //$a->timeend  = userdate($ue->timeend, '', $user->timezone);
-        //$a->enroller = fullname($enroller, has_capability('moodle/site:viewfullnames', $context, $user));
+        $a->timeend  = date('d/m/Y \à\s H:i', $ue->timeend);
+        $a->enroller = fullname($enroller, has_capability('moodle/site:viewfullnames', $context, $user));
 
         $subject = get_string('expirymessageenrolledsubject', 'enrol_'.$name, $a);
         $body = get_string('expirymessageenrolledbody', 'enrol_'.$name, $a);
