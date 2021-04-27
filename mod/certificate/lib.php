@@ -276,7 +276,13 @@ function certificate_pluginfile($course, $cm, $context, $filearea, $args, $force
         return false;
     }
 
-    require_login($course, false, $cm);
+    
+    //require_login($course, false, $cm);
+    require_login();
+    if(!is_enrolled($context, $USER->id)){
+        require_login($course, false, $cm);
+    }
+
 
     require_once($CFG->libdir.'/filelib.php');
 

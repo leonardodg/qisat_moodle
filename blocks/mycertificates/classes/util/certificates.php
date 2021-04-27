@@ -26,6 +26,8 @@ namespace block_mycertificates\util;
 
 defined('MOODLE_INTERNAL') || die();
 
+use context_module;
+
 /**
  * Class to get the user certificates.
  *
@@ -64,16 +66,83 @@ class certificates {
      * @throws \moodle_exception
      */
     public function get_all_certificates() {
+        $certificate = $this->get_from_certificate();
         $simplecertificate = $this->get_from_simplecertificate();
         $customcert = $this->get_from_customcert();
 
-        $allcerts = array_merge($simplecertificate, $customcert);
+        $allcerts = array_merge($certificate, $simplecertificate, $customcert);
 
         if (!empty($allcerts)) {
             return array_values($this->group_certificates_by_course($allcerts));
         }
 
         return [];
+    }
+
+    /**
+     * Get all issued certificates from certificate module.
+     *
+     * @return array
+     *
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function get_from_certificate() {
+        global $DB, $CFG;
+
+        $certificate = \core_plugin_manager::instance()->get_plugin_info('mod_certificate');
+
+        if (is_null($certificate)) {
+            return [];
+        }
+
+        $sql = "SELECT
+                  cc.id,
+                  ci.id as issuesid,
+                  cc.name,
+                  c.id as courseid,
+                  c.fullname,
+                  c.shortname,
+                  'certificate' as module,
+                  cm.id as cmid
+                FROM {certificate_issues} ci
+                INNER JOIN {certificate} cc ON cc.id = ci.certificateid
+                INNER JOIN {course_modules} cm ON cm.instance = cc.id
+                INNER JOIN {modules} m ON m.id = cm.module AND m.name LIKE 'certificate'
+                INNER JOIN {course} c ON c.id = cc.course
+                WHERE ci.userid = :userid";
+
+        $params = ['userid' => $this->user->id];
+
+        if ($this->courseid) {
+            $sql .= ' AND c.id = :courseid';
+            $params['courseid'] = $this->courseid;
+        }
+
+        $sql .= ' ORDER BY c.fullname, ci.timecreated';
+
+        $certificates = $DB->get_records_sql($sql, $params);
+
+        if (empty($certificates)) {
+            return [];
+        }
+
+        $component = 'mod_certificate';
+        $filearea = 'issue';
+        $fs = get_file_storage();
+        foreach ($certificates as $key => $certificate) {
+            $cm = get_coursemodule_from_id('certificate', $certificate->cmid);
+            $context = context_module::instance($cm->id); 
+
+            $files = $fs->get_area_files($context->id, $component, $filearea, $certificate->issuesid);
+            foreach ($files as $file) {
+                $filename = $file->get_filename();
+                $link = file_encode_url($CFG->wwwroot.'/pluginfile.php', '/'.$context->id.'/mod_certificate/issue/'.$certificate->issuesid.'/'.$filename);            
+                $certificates[$key]->downloadurl = $link;
+            }
+        }
+
+        return $certificates;
     }
 
     /**
