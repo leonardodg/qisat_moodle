@@ -5,8 +5,6 @@
  * @author Deyvison Fernandes Baldoino 
  */
 
-require_once($CFG->dirroot.'/vendor/aes/SecurityAES.php');
-
 class EmailSenha{
 
 	/**
@@ -63,7 +61,9 @@ class EmailSenha{
 	* @return String hash
 	*/
 	private static function decryptSenha($usuario){
-		global $DB;
+		global $DB, $CFG;
+
+		require_once($CFG->dirroot . '/vendor/phpaes/phpaes/src/SecurityAES.php');
 
 		$configPlugin = $DB->get_record('config_plugins', array('plugin'=>'auth_aesauth','name'=>'authaeskey'));
 
@@ -72,7 +72,7 @@ class EmailSenha{
 			trigger_error($mensagemErro, E_USER_ERROR);
 		}
 
-		$aes = new SecurityAES($configPlugin->value);
+		$aes = new aes\SecurityAES($configPlugin->value);
 		$senha = $aes->descriptografar($usuario->password);
 		
 		return $senha;

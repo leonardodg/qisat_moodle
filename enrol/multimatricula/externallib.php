@@ -403,9 +403,11 @@ class WscMatricula extends external_api {
     private static function enviar_email_matricula($usuario, $curso, DateTime $dataInicio, $fase = false){
         global $CFG, $DB;
 
+        require_once($CFG->dirroot . '/vendor/phpaes/phpaes/src/SecurityAES.php');
+
         $configPlugin = $DB->get_record('config_plugins', array('plugin'=>'auth_aesauth','name'=>'authaeskey'));
 
-        $aes = new SecurityAES($configPlugin->value);
+        $aes = new aes\SecurityAES($configPlugin->value);
         $senha = $aes->descriptografar($usuario->password);
 
         $site = get_site();

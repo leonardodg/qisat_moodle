@@ -24,6 +24,7 @@
 
 require('../../config.php');
 require_once($CFG->dirroot.'/enrol/manual/locallib.php');
+require_once($CFG->dirroot . '/vendor/phpaes/phpaes/src/SecurityAES.php');
 
 $enrolid      = required_param('enrolid', PARAM_INT);
 $roleid       = optional_param('roleid', -1, PARAM_INT);
@@ -149,7 +150,7 @@ if ($canenrol && optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) 
                 $mensagemErro = 'authaeskey não configurada no plugin auth_aesauth.';
                 trigger_error($mensagemErro, E_USER_ERROR);
             }
-            $aes = new SecurityAES($configPlugin->value);
+            $aes = new aes\SecurityAES($configPlugin->value);
             $fromemail->password = $aes->descriptografar($fromemail->password);
 
             $emailsubject = get_string('emailenroltitulo', 'enrol_manual');

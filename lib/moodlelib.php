@@ -2481,17 +2481,23 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
     global $CFG, $SESSION, $USER, $PAGE, $SITE, $DB, $OUTPUT;
 
     if($CFG->enable_login_ecommerce == 1) {
-    	require_once($CFG->dirroot . '/vendor/aes/SecurityAES.php');
+    	require_once($CFG->dirroot . '/vendor/phpaes/phpaes/src/SecurityAES.php');
         require_once($CFG->dirroot . '/login/lib.php');
 
-        $cookie = $_COOKIE['QiSat'];
         $logar = false;
+        $dados =  false;
 
         if(isset($_COOKIE['QiSat'])){
+            $cookie = $_COOKIE['QiSat'];
         	$config = $DB->get_record_sql("SELECT * FROM {config} WHERE name = 'key_aes_integracao_login'");
 
-	        $aes = new SecurityAES($config->value);
+	        $aes = new aes\SecurityAES($config->value);
 	        $dados = json_decode($aes->descriptografar($cookie));
+
+            // echo '<pre>';
+            // var_dump($cookie);
+            // echo '<br>';
+            // var_dump($dados);
         
         	if(!$USER->id || 
     		   (isset($USER->username) && $USER->username != $dados->username)){
@@ -2502,15 +2508,23 @@ function require_login($courseorid = null, $autologinguest = true, $cm = null, $
         if ($logar) {
             $config = $DB->get_record_sql("SELECT * FROM {config} WHERE name = 'keyaes'");
 
-            $aes = new SecurityAES($config->value);
+            $aes = new aes\SecurityAES($config->value);
             $dados->password = $aes->descriptografar($dados->password);
 
+            // echo '<br>';
+            // var_dump($dados);
 
             $user = authenticate_user_login($dados->username, $dados->password, false);
+            
+            // echo '<br>aa';
+            // var_dump($user);
+
             complete_user_login($user);
             core\session\manager::apply_concurrent_login_limit($user->id, session_id());
 
             $urltogo = core_login_get_return_url();
+            //  echo '<br>cc '. $urltogo;
+            // die;
         } elseif (!isset($_COOKIE['QiSat'])) {
             require_logout();
         }

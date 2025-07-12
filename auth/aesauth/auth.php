@@ -10,7 +10,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/authlib.php');
-require_once($CFG->dirroot.'/vendor/aes/SecurityAES.php');
+require_once($CFG->dirroot . '/vendor/phpaes/phpaes/src/SecurityAES.php');
 
 /**
  * Manual authentication plugin.
@@ -39,7 +39,7 @@ class auth_plugin_aesauth extends auth_plugin_base {
         $this->config = (object)array_merge((array)$legacyconfig, (array)$config);
         
         if(isset($this->config->authaeskey)){
-            $this->aes = new SecurityAES($this->config->authaeskey);
+            $this->aes = new aes\SecurityAES($this->config->authaeskey);
         }
     }
 
